@@ -1,0 +1,102 @@
+{
+    "dumpster planet": {
+      "display_term": "Dumpster Planet",
+      "lore_path": ["setting", "world_description"]
+    },
+    "the great recycler": {
+      "display_term": "The Great Recycler",
+      "lore_path": ["main_ai_entity", "description"]
+    },
+    "recycler": {
+      "display_term": "Recycler",
+      "lore_path": ["main_ai_entity", "description"]
+    },
+    "thetopia": {
+      "display_term": "Thetopia",
+      "lore_path": ["locations", "Thetopia", "description"]
+    },
+    "sasquatch": {
+      "display_term": "Sasquatch",
+      "lore_path": ["races", "Sasquatch", "description"]
+    },
+    "leprechaun": {
+      "display_term": "Leprechaun",
+      "lore_path": ["races", "Leprechaun", "description"]
+    },
+    "android": {
+      "display_term": "Android",
+      "lore_path": ["races", "Android", "description"]
+    },
+    "opossuman": {
+      "display_term": "Opossuman",
+      "lore_path": ["races", "Opossuman", "description"]
+    },
+    "tortisian": {
+      "display_term": "Tortisian",
+      "lore_path": ["races", "Tortisian", "description"]
+    },
+    "slime": {
+      "display_term": "Slime",
+      "lore_path": ["races", "Slime", "description"]
+    },
+    "inventor": {
+      "display_term": "Inventor",
+      "lore_path": ["classes", "Inventor", "description"]
+    },
+    "archanist": {
+      "display_term": "Archanist",
+      "lore_path": ["classes", "Archanist", "description"]
+    },
+    "soldier": {
+      "display_term": "Soldier",
+      "lore_path": ["classes", "Soldier", "description"]
+    },
+    "counselor": {
+      "display_term": "Counselor",
+      "lore_path": ["classes", "Counselor", "description"]
+    },
+    "rascal": {
+      "display_term": "Rascal",
+      "lore_path": ["classes", "Rascal", "description"]
+    },
+    "becoming awesome": {
+      "display_term": "Becoming Awesome",
+      "lore_path": ["philosophies", "Becoming Awesome", "description"]
+    },
+    "law and order": {
+      "display_term": "Law and Order",
+      "lore_path": ["philosophies", "Law and Order", "description"]
+    },
+    "pointlessnesses": {
+      "display_term": "Pointlessnesses",
+      "lore_path": ["philosophies", "Pointlessnesses", "description"]
+    },
+    "town square": {
+      "display_term": "Town Square",
+      "lore_path": ["locations", "Thetopia - Town Square", "description"]
+    },
+    "whispering willow plaza": {
+      "display_term": "Whispering Willow Plaza",
+      "lore_path": ["locations", "Thetopia - Whispering Willow Plaza", "description"]
+    },
+     "bakery street": {
+      "display_term": "Bakery Street",
+      "lore_path": ["locations", "Thetopia - Bakery Street", "description"]
+    },
+     "library steps": {
+      "display_term": "Library Steps",
+      "lore_path": ["locations", "Thetopia - Library Steps", "description"]
+    },
+     "library interior": {
+      "display_term": "Library Interior",
+      "lore_path": ["locations", "Thetopia - Library Interior", "description"]
+    },
+     "maker's alley": {
+      "display_term": "Maker's Alley",
+      "lore_path": ["locations", "Thetopia - Maker's Alley", "description"]
+    },
+    "residential loop": {
+      "display_term": "Residential Loop",
+      "lore_path": ["locations", "Thetopia - Residential Loop", "description"]
+    }
+  }

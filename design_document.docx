@@ -1,0 +1,266 @@
+Daydream - Design Document (v6.1)
+Version: 6.1 (Updated)
+Date: April 26, 2025 (Updated)
+
+Table of Contents
+
+Introduction & Vision
+Core Concepts
+2.1 AI Storyteller & Guide
+2.2 Gameplay Interaction
+2.3 Setting & Lore
+2.4 Player & Character Data
+2.5 Character Definition (Races, Classes, Philosophies)
+2.6 Character Creation & Selection (Updated)
+2.7 Character Deletion
+2.8 Abilities & Boons
+Key Features & Mechanics
+3.1 Narrative Choice & Interaction
+3.2 Onboarding & Introduction
+3.2.1 Introductory Video
+3.2.2 Introductory Images
+3.2.3 Explanatory Text
+3.3 Vocabulary System (AWL & AI-Gen)
+3.4 Lore Highlighting System
+3.5 End-of-Chapter Sequence
+3.6 Player Progression (Educational Focus)
+3.7 Premium Features
+Technology Stack & File Structure
+AI Prompts Overview
+Development Workflow & Status (Updated)
+Marketing Strategy
+Parent/Educator Dashboard (Future Feature)
+Financial Strategy
+Development Process Notes
+Open Questions / Next Steps (Updated)
+Appendix: Local Development Setup Reference
+1. Introduction & Vision
+
+Project Name: Daydream
+Concept: Daydream is an interactive text-based adventure game featuring an AI storyteller (Google Vertex AI - Gemini). It is designed as both an engaging entertainment experience and a targeted educational tool for students in Grades 8-12, focusing on narrative, vocabulary, and critical thinking.   
+Core Loop: Players interact with the world and AI storyteller primarily through text commands, making choices that drive a personalized narrative. The game rewards language exploration and assesses comprehension and writing skills.   
+Setting: Players arrive on Dumpster Planet, a realm formed from the coalesced echoes of humanity's forgotten daydreams and wasted ideas. The game's governing AI, The Great Recycler, oversees this realm, seeking potential within the conceptual chaos. Thetopia serves as the main hub.   
+Target Audience: Students in Grades 8-12, players interested in text adventures, narrative RPGs, and creative writing.   
+Goals:
+Deliver a fun, immersive text-based RPG experience focused on story and choice.   
+Enhance SAT-level vocabulary (via AWL), reading comprehension, critical thinking, and writing skills.   
+Utilize AI for dynamic storytelling, response generation, writing analysis, comprehension assessment, and premium features.   
+Offer a compelling free tier with pre-made characters and engaging premium features for deeper customization and learning.   
+Establish persistent player profiles and character data using Firebase.   
+Provide a clear and engaging onboarding experience for new players.   
+2. Core Concepts
+
+2.1 AI Storyteller & Guide
+Technology: Google Vertex AI (Gemini models - currently 1.5 Flash).   
+Role: Acts as the primary narrator, interprets player actions, describes locations and outcomes, generates dynamic quests, handles end-of-chapter analysis, provides character creation feedback (premium), and generates custom vocabulary lists (premium). Aims for evocative, sensory descriptions and encourages thoughtful player input.   
+2.2 Gameplay Interaction
+Primary Mode: Text-based chat interface. Players type full-sentence commands to interact.   
+UI Elements:
+Top Info Bar: Displays character name, location, fate points, and links to Journal views horizontally across the top (game_view.html).   
+Conversation Log: Displays player input and AI storyteller responses (game_view.html).   
+Input Area: Text box for player commands (game_view.html). Includes current quest objective display below input.   
+Journal Views: Separate pages (journal_char_quest.html, journal_vocab_report.html) for Character Sheet/Quest Log/Inventory and Vocabulary/Reports.   
+Character Creation UI (Custom): Dedicated interface (character_creation.html). (Premium restriction currently disabled for testing).   
+Profile View (profile.html): Displays player stats, character list (Load/Delete), creation/selection forms.   
+Base Layout (base.html): Overall page structure, navigation, flash messages.   
+2.3 Setting & Lore
+World: Dumpster Planet, a chaotic realm of discarded ideas. Hub: Thetopia, a pocket of stability.   
+Source Files:
+Worldbuilding details: lore.py. (Data structure verified for highlighting via lore_vocabulary.json ).   
+Keyword mapping for highlighting: lore_vocabulary.json.   
+Quest structures: quests.py (includes multi-step starter quests).   
+Lore Scope: The defined lore (in lore.py) is intentionally kept concise. This provides sufficient context and flavor for the AI and players without being overly restrictive, allowing emergent narrative and creativity within the established framework (Dumpster Planet, The Great Recycler, Thetopia, core races/classes/concepts). Expansion will occur strategically if testing reveals specific areas lacking necessary context for the AI.   
+2.4 Player & Character Data
+Player Profile (Firebase Auth & Firestore player_profiles collection):
+Stores user account info (email, UID).   
+Tracks player-level progress: Player Level, Total Player XP (earned via EOC analysis).   
+Stores premium status (has_premium - currently bypassed for testing char creation).   
+Manages vocabulary settings (vocab_settings, e.g., use_default_awl). Includes custom highlight colors (awl_color_bg, ai_color_bg). (Added detail)   
+Stores custom AI vocabulary lists (custom_vocab_lists subcollection).   
+Tracks onboarding status (has_seen_intro: boolean, default false).   
+Character Data (Firestore characters collection):
+Stores individual characters, linked to Player Profile (user_id).   
+Core Narrative Definition: Name, Race, Class, Philosophy, Boon, Backstory.   
+State Information: Current Location, Current Quest ID/Title/Step ID/Step Description, Fate Points, Turn Count.   
+Persistent Logs: Conversation Log (last ~100 lines via FS_CONVERSATION), Current Chapter Inputs (FS_CHAPTER_INPUTS).   
+Quest State Tracking: FS_QUEST_FLAGS (dictionary for tracking step conditions like fountain_analyzed: True).   
+Inventory Tracking: FS_INVENTORY (list of item name strings).   
+Progress Tracking: Learned AWL Vocabulary (set/list), Completed Quests list (IDs), Report Summaries list (chapter summary objects).   
+Removed: Attributes (Body, Mind, Spirit) and Character Level/XP system.   
+2.5 Character Definition (Races, Classes, Philosophies)
+Defined in data structures (RACE_DATA, CLASS_DATA, PHILOSOPHY_DATA) merged into app.py.   
+Provide narrative flavour, starting abilities, aspects, and potentially modify starting Fate Points. No attribute modifiers.   
+(Updated Section) 2.6 Character Creation & Selection
+Free Tier: Select from pre-made characters (premade_characters.json) via /profile. Loads associated starter quest from quests.py. Creates Firestore character instance.   
+Custom Creation: Access dedicated UI (character_creation.html) via /profile.
+Step 1: Define Details: Player defines Name, Race, Class, Philosophy, Boon, Backstory, and Starting Goal Idea in editable form fields.   
+Step 2: Submit for Review: Player submits details. Application calls AI (REVIEW_CHARACTER_SHEET prompt) for narrative feedback.   
+Step 3: Review & Choose: Page reloads displaying submitted details (read-only), AI recommendations, and action buttons: "Finalize Character", "Edit Details", "Start Over" (Updated Flow).
+Step 4a (Edit): Clicking "Edit Details" unlocks the form fields, populated with the previous details, allowing modification. AI recommendations are hidden. Player can re-submit for review. (New Step)
+Step 4b (Finalize): Clicking "Finalize Character" saves the character (as currently displayed) to Firestore. Assigns appropriate starter quest.   
+Step 4c (Start Over): Clicking "Start Over" clears all entered details and returns to the initial editable blank form state. (Updated Behavior)
+  
+(Premium restriction currently disabled for testing ).   
+Signup includes password confirmation.   
+2.7 Character Deletion
+Implemented via POST to /delete_character/<char_id> route. Requires login, verifies ownership (user_id match).   
+Deletes character document from Firestore characters collection. UI button with confirmation on profile.html.   
+Clears deleted character from active session.   
+2.8 Abilities & Boons
+Abilities: Granted by Race, Class, Philosophy. Defined in app.py. Represent narrative permissions.   
+Boons: Unique starting items/companions. Defined in character data.   
+Resolution: Outcomes determined narratively by AI (PROCESS_ABILITY_USE prompt) based on context, ability, situation, Fate Points. No dice rolls/attribute checks.   
+3. Key Features & Mechanics
+
+3.1 Narrative Choice & Interaction
+Core gameplay revolves around player text input and AI-generated narrative responses.   
+Player choices influence story, NPCs, and quest progression via quest triggers (state_var, inventory_has, ai_check) and rewards (set_flag, item).   
+3.2 Onboarding & Introduction
+Goal: Provide new players with context about the game world and how to play upon starting their first character.   
+3.2.1 Introductory Video (Planned):
+Concept: A short video (~15-30 seconds) automatically played the first time a player enters the game view (/game) with any character on their account.   
+Content: Briefly introduces Dumpster Planet, The Great Recycler, Thetopia, and text interaction.   
+Source: External (e.g., "Veo 2").   
+Implementation: Requires has_seen_intro flag, logic check in /game GET, frontend display (modal) & flag update.   
+  
+3.2.2 Introductory Images (Planned):
+Concept: Display static images in narrative log during first chapter start.   
+Source: External (e.g., "Gemini 2.0 Flash"). Local storage (/static/images/intro/).   
+Implementation: Identify triggers. Pass path from app.py. Conditional display in game_view.html.   
+  
+3.2.3 Explanatory Text:
+Concept: Simple guidance text in UI.   
+Implementation: Add brief text to auth pages, profile, potentially game view hints.   
+  
+3.3 Vocabulary System (AWL & AI-Gen)
+Goal: Enhance SAT-level vocabulary and reading comprehension.   
+AWL: Default list (vocabulary.py, awl_definitions.json). Highlighted (.vocab-awl class, custom colors via profile settings). Definitions on hover. Toggled via profile. Contributes to Player XP. (Added color detail)   
+AI-Generated Lists (Premium): Player provides focus word. AI generates list (GENERATE_CONTEXTUAL_VOCAB). Saved to profile. Highlighted (.vocab-ai class, custom colors via profile settings). Definitions on hover. Managed via Journal. (Added color detail)   
+3.4 Lore Highlighting System
+Goal: Provide interactive context and worldbuilding.   
+Mechanism: Terms (lore_vocabulary.json) map to paths in lore.py. Python helper wraps terms (.lore-term). JS (addLoreHighlightingListeners) shows definitions on hover.   
+3.5 End-of-Chapter Sequence
+Trigger: Major/final quest step completion (requires MIN_INPUTS_FOR_EOC). AI Suggestion (CHECK_CHAPTER_PROGRESS).   
+Flow: Comprehension Check, Writing Analysis, Player XP Calculation, Report Summary, Next Quest Generation.   
+3.6 Player Progression (Educational Focus)
+Measured via engagement and learning (Player XP/Level), not character stats.   
+Player XP & Level: Earned via EOC evaluations. Stored in player_profiles.   
+Learned Vocabulary: Tracks encountered AWL words. Stored in character data.   
+Chapter Reports: Provide feedback summaries. Stored in character data.   
+3.7 Premium Features
+Requires has_premium: true in user profile  (manual toggle for testing). Payment via Stripe planned.   
+Custom Character Creation: Access to character_creation.html. Includes AI review and edit cycle. (Updated description)   
+AI Vocabulary List Generation & Management.   
+AI Light Novel Generation (Future): Compile adventure into ebook. Requires new prompts and logic.   
+Dynamic Scene/Character Visualization (Future): User-triggered or context-based image generation. Replaces simpler "Visualize Scene" concept.   
+Deferred/Future: Manual Custom Vocab Upload, Advanced Analytics, Exclusive Content, Ad-Free Tier, Educator Dashboard.   
+4. Technology Stack & File Structure
+
+Backend: Python (Flask framework).   
+Database: Google Cloud Firestore (player_profiles, characters collections).   
+Authentication: Firebase Authentication.   
+AI: Google Vertex AI (Gemini models - currently 1.5 Flash).   
+Frontend: HTML (Jinja2 templates), CSS, JavaScript.   
+UI Theme: Aiming for an "Antique Book" aesthetic (style.css). Parchment/leather textures, serif fonts, muted colors, high contrast text.   
+Payment Processing: Stripe (Future).   
+Image Generation: External tools/APIs (e.g., Imagen via Vertex AI). Static intro images generated offline.   
+Video Playback: Standard HTML5 video or JS library.   
+Core Logic/Data Files: app.py, vocabulary.py, awl_definitions.json, lore.py, lore_vocabulary.json, quests.py, premade_characters.json.   
+Templates (templates/): base.html, game_view.html, etc.   
+Static Files (static/): style.css, (future) images/, videos/.   
+5. AI Prompts Overview
+
+(Existing prompts: INITIAL_SETUP, GET_DESCRIPTION, PROCESS_ABILITY_USE, INVALID_DIRECTION, INVALID_ABILITY, INTERPRET_COMMAND, ANALYZE_PLAYER_WRITING, EVALUATE_CHAPTER_COMPREHENSION, REVIEW_CHARACTER_SHEET, GENERATE_NEXT_QUEST, GENERATE_CONTEXTUAL_VOCAB, CHECK_CHAPTER_PROGRESS, INITIATE_PLAYER_SIDEQUEST, PROCESS_PLAYER_SIDEQUEST_IDEA, EVALUATE_SIDEQUEST_COMPLETION, EVALUATE_STEP_COMPLETION). Ensure EVALUATE_STEP_COMPLETION is effective.   
+Future: GENERATE_LIGHT_NOVEL, GENERATE_BOOK_COVER. Possibly prompts for dynamic image generation.   
+6. Development Workflow & Status
+
+Phase 0-4: Done.   
+Phase 5: Core Systems Enhancement:
+Highlighting System: Done.   
+Quest System: Multi-step defined. Trigger handling implemented. Status: Done (Pending Thorough Testing).   
+Persistence: Done.   
+Character Deletion: Done.   
+HTML Refinement: Done (Ongoing theme application).   
+CSS Centralization: Done (Ongoing theme application).   
+Navigation Structure: Done (Top bar implemented).   
+Firestore Warnings: Done.   
+Dynamic Hero's Journey Stage: Done.   
+(New) Character Creation Flow Refinement: Implemented "Edit Details" step after AI review. Status: Done (Pending Thorough Testing).
+Phase 6: Testing & Refinement: Current Focus.
+Test quest step completion logic.   
+Test character creation flow (including new Edit step). (Updated)
+Test onboarding text additions.   
+Refine CSS for antique book theme.   
+Phase 7: New Feature Implementation (Planned):
+Implement Intro Video logic.   
+Implement Intro Image logic.   
+Implement Stripe Integration.   
+Implement AI Light Novel Generation.   
+(Future) Implement Dynamic Image Generation.   
+(Future) Implement Educator Dashboard.   
+7. Marketing Strategy
+
+Target Audience: Students (Grades 8-12), educators, parents, text adventure/RPG players, creative writers.   
+Core Messaging: Blend of engaging AI story + educational benefits (vocab, comprehension, thinking, writing). Highlight personalized narrative, premium features.   
+Phase 1: Commercial Launch (Individuals & Early Adopters):
+Digital Presence: Website (mobile-friendly, SEO).   
+Content Marketing: Blog, videos, tutorials.   
+Social Media: Relevant platforms (Reddit, Discord, TikTok, Instagram).   
+Digital Advertising: Targeted ads (Google, social media).   
+Community Building: Discord server.   
+App Portals: Web game/indie game platforms.   
+  
+Phase 2: School Outreach (Requires Dashboard):
+Highlight Educational Value: Educator materials.   
+Direct Outreach: Schools/districts.   
+Pilot Programs: Trials for feedback/testimonials.   
+Conferences: EdTech conferences.   
+Partnerships: Educational organizations/platforms.   
+  
+8. Parent/Educator Dashboard (Future Feature)
+
+Planned for future release, potentially school-focused tier.   
+Core Features: Class/Group Management, Progress Monitoring, Assignment Capabilities, Content Filtering (Potential), Communication Tools (Potential), Accessibility Oversight.   
+Privacy & Security: Adherence to student data privacy regulations (FERPA, COPPA).   
+9. Financial Strategy
+
+Model: Freemium. Core free, revenue from premium subscriptions.   
+Premium Features (Commercial Tier): Custom Character Creation (with edit cycle), AI Vocab Gen & Mgmt, AI Light Novel Gen. (Updated description)   
+Payment Processor: Stripe (Flask integration).   
+Pricing: TBD for premium tier.   
+(Future) School Tier: Separate model for institutions.   
+Distribution: Direct Website, Web Game Portals.   
+10. Development Process Notes
+
+Gemini Interaction: Primarily full file generation and iterative debugging.   
+App Delivery: Currently local Flask server. Future: App Engine/Cloud Run.   
+Mobile: Responsive Web Design via CSS.   
+11. Open Questions / Next Steps
+
+Immediate:
+Test Quest Progression: Thoroughly test state_var, inventory_has, and ai_check triggers. Debug logic/definitions.   
+(New) Test Character Creation Flow: Verify the Define -> Review -> Edit -> Finalize/Restart cycle works smoothly.
+Refine CSS Theme: Continue work on style.css (contrast, layout, textures).   
+Add/Refine Intro Text: Integrate/review text on auth/profile pages.   
+Near-Term:
+Plan Intro Assets: Generate/source intro video and images. Define image mapping.   
+Implement Intro Video Logic: Add flag, check in app.py, implement display.   
+Implement Intro Image Logic: Add logic to app.py, update game_view.html.   
+Future/Deferred:
+Stripe Integration.   
+AI Light Novel Feature.   
+Dynamic Image Generation Feature.   
+Fate Point Mechanics.   
+Curriculum Alignment / Educator Dashboard.   
+Player Side Quest Flow Refinement/Testing.   
+12. Appendix: Local Development Setup Reference
+
+Python: 3.x (3.10+). Ensure pip & PATH configured.   
+pip: Verify installation (pip --version).   
+Virtual Environment: venv recommended. Create (python -m venv venv), Activate (source venv/bin/activate or .\venv\Scripts\activate).   
+Flask: pip install Flask.   
+Google Cloud Libraries: pip install google-cloud-firestore google-cloud-aiplatform firebase-admin.   
+Google Cloud CLI (gcloud): Install. Run gcloud init, gcloud auth application-default login.   
+Git: Install. Optional but recommended.   
+Code Editor: Cursor, VS Code, etc.   
+(Optional) Docker: Containerization tool.   

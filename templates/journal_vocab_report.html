@@ -1,0 +1,176 @@
+{% extends "base.html" %}
+
+{% block title %}Journal: Vocabulary & Reports - Daydream{% endblock %}
+
+{% block content %}
+<div class="book-container journal-view">
+
+   {# Left Page: Vocabulary #}
+   <section class="book-page left-page word-journal" aria-labelledby="vocab-heading">
+       <h2 id="vocab-heading">Word Journal</h2>
+
+       {# Display AWL Words if available #}
+       {% if awl_words %}
+           <div class="vocab-section">
+               <h3>Academic Word List (AWL)</h3>
+               <ul class="vocab-list">
+               {# Removed inline style, rely on .vocab-awl class set in app.py highlighting #}
+               {% for item in awl_words %}
+                   <li><strong class="vocab-word">{{ item.word }}</strong>: {{ item.definition }}</li>
+               {% else %}
+                    <li>No AWL words recorded yet.</li>
+               {% endfor %}
+               </ul>
+           </div>
+           <hr>
+       {% else %}
+            {# Show placeholder if no AWL words found #}
+            <div class="vocab-section">
+                <h3>Academic Word List (AWL)</h3>
+                <p>No AWL words recorded yet.</p>
+            </div>
+            <hr>
+       {% endif %}
+
+       {# Display AI Generated Lists #}
+       <div class="vocab-section">
+           <h3>AI Generated Lists</h3>
+           {% if ai_word_lists %}
+               {% for list_name, words in ai_word_lists.items() %}
+                    {# Display active list name #}
+                    <h4 class="ai-list-name">{{ list_name }}</h4>
+                    <ul class="vocab-list">
+                        {# Removed inline style and color lookup, rely on .vocab-ai class set in app.py highlighting #}
+                        {% for item in words %}
+                           <li><strong class="vocab-word">{{ item.word }}</strong>: {{ item.definition }}</li>
+                        {% else %}
+                            <li>This list appears empty.</li>
+                        {% endfor %}
+                    </ul>
+               {% endfor %}
+           {% else %}
+               <p>No active AI-generated vocabulary lists found.</p>
+           {% endif %}
+       </div>
+       <hr>
+
+       {# AI List Management Section (Uses ai_lists_metadata) #}
+       <div class="vocab-management">
+           <h3>Manage AI Lists</h3>
+           {% if ai_lists_metadata %}
+               <table class="vocab-manage-table">
+                   <thead>
+                       <tr>
+                           <th>Name</th>
+                           <th>Words</th>
+                           <th>Status</th>
+                           <th>Actions</th>
+                       </tr>
+                   </thead>
+                   <tbody>
+                   {% for list_meta in ai_lists_metadata %}
+                       <tr>
+                           <td>{{ list_meta.name }}</td>
+                           <td>{{ list_meta.word_count }}</td>
+                           <td>{{ "Active" if list_meta.is_active else "Inactive" }}</td>
+                           <td class="actions">
+                               {# Toggle Active Form #}
+                               <form method="POST" action="{{ url_for('toggle_vocab_list', list_id=list_meta.id) }}" style="display: inline;">
+                                   <button type="submit" class="button-small">
+                                       {{ "Deactivate" if list_meta.is_active else "Activate" }}
+                                   </button>
+                               </form>
+                               {# Delete Form #}
+                               <form method="POST" action="{{ url_for('delete_vocab_list', list_id=list_meta.id) }}" style="display: inline;"
+                                     onsubmit="return confirm('Are you sure you want to permanently delete the list \'{{ list_meta.name }}\'?');">
+                                   <button type="submit" class="button-small button-danger">Delete</button>
+                               </form>
+                           </td>
+                       </tr>
+                   {% endfor %}
+                   </tbody>
+               </table>
+           {% else %}
+               <p>No AI-generated lists exist yet.</p>
+           {% endif %}
+       </div>
+       <hr>
+
+
+       {# AI Vocab Generation Trigger (Premium) #}
+       {% if premium_active %}
+       <div class="premium-feature-section">
+           <h4>Generate New Vocab List (Premium)</h4>
+           {# Use standard POST method for generation #}
+           <form id="generate-vocab-form" method="POST" action="{{ url_for('generate_vocab_list') }}">
+               <div class="form-group">
+                   <label for="focus_word_input">Enter Focus Word:</label>
+                   <input type="text" id="focus_word_input" name="target_word" required placeholder="e.g., chaos, structure">
+               </div>
+               <div class="form-actions">
+                   <button type="submit" class="button">Generate List</button>
+                   {# Optional: Add JS here later to handle response via AJAX for smoother UX #}
+               </div>
+           </form>
+       </div>
+       {% endif %}
+
+       <p class="page-link"><a href="{{ url_for('game_view') }}">Return to Game</a></p>
+   </section> {# End left page section #}
+
+   {# Right Page: Reports #}
+   <section class="book-page right-page report-summaries" aria-labelledby="reports-heading">
+       <h2 id="reports-heading">Chapter Report Summaries</h2>
+       {% if report_summaries %}
+           {# Use <article> for each report #}
+           {% for report in report_summaries %}
+               <article class="report-summary" aria-labelledby="chapter-heading-{{ report.chapter | default('unk') }}">
+                   <h4 id="chapter-heading-{{ report.chapter | default('unk') }}">Chapter {{ report.chapter | default('?') }} Summary</h4>
+                   {# Using <pre> preserves formatting from app.py, including markdown-like chars #}
+                   {# Consider rendering markdown properly later if needed #}
+                   <pre>{{ report.summary | default('Summary not available.') }}</pre>
+               </article>
+           {% else %}
+               <p>No chapter reports generated yet.</p>
+           {% endfor %}
+       {% else %}
+           <p>Report summaries not available.</p>
+       {% endif %}
+
+       {# Commented out premium feature placeholder #}
+       {# <div class="premium-feature-placeholder" style="margin-top: 20px;">
+           <button type="button" class="button premium-button" disabled title="Requires Premium Subscription">Visualize Last Chapter</button>
+       </div> #}
+       <p class="page-link"><a href="{{ url_for('journal_char_quest') }}">View Character/Quest</a></p>
+   </section> {# End right page section #}
+
+</div> {# End book-container #}
+{% endblock %}
+
+{# Removed the entire {% block styles %}...{% endblock %} section
+   Assuming styles were moved to static/style.css
+#}
+
+{# Optional: Add JavaScript block for potential AJAX handling of generate/manage forms later #}
+{# {% block scripts %}
+{{ super() }}
+<script>
+    // Example: AJAX form submission for generate list
+    // const form = document.getElementById('generate-vocab-form');
+    // if (form) {
+    //     form.addEventListener('submit', async (event) => {
+    //         event.preventDefault();
+    //         const formData = new FormData(form);
+    //         const response = await fetch(form.action, { method: 'POST', body: formData });
+    //         const result = await response.json();
+    //         // Handle result (e.g., show success/error message, maybe reload part of page)
+    //         console.log(result);
+    //         if (result.success) {
+    //             window.location.reload(); // Simple reload on success for now
+    //         } else {
+    //             alert(`Error: ${result.error}`);
+    //         }
+    //     });
+    // }
+</script>
+{% endblock %} #}

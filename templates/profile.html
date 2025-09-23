@@ -1,0 +1,117 @@
+{% extends "base.html" %} {# MUST be the very first line #}
+
+{% block title %}Your Profile - Daydream{% endblock %}
+
+{% block styles %}
+   {# Add any CSS overrides specific ONLY to the profile page here if needed #}
+{% endblock %}
+
+{% block content %}
+{# Use a container div consistent with other pages #}
+<div class="container profile-view">
+
+    <h1>Your Profile</h1>
+    {# Display profile info #}
+     {% if profile %}
+        <p><strong>Email:</strong> {{ profile.email }}</p>
+        <p><strong>Premium Status:</strong> {{ "Active" if profile.has_premium else "Inactive" }}</p>
+    {% else %}
+        <p>Could not load profile information.</p>
+    {% endif %}
+    <hr>
+
+    {# --- Existing Characters Section --- #}
+    <section class="character-list">
+        <h2>Your Characters</h2>
+         {% if characters %}
+            <ul>
+                {% for char in characters %}
+                <li>
+                    <div class="char-info">
+                        <strong>{{ char.name }}</strong> ({{ char.race }} {{ char.class }})
+                    </div>
+                    <div class="char-actions">
+                        {# Load Character Form #}
+                        <form method="POST" action="{{ url_for('profile') }}" style="display: inline;">
+                            <input type="hidden" name="action" value="load_char">
+                            <input type="hidden" name="char_id" value="{{ char.id }}">
+                            <button type="submit" class="button button-small">Load</button>
+                        </form>
+                        {# Delete Character Form #}
+                        <form method="POST" action="{{ url_for('delete_character', char_id=char.id) }}" style="display: inline;"
+                              onsubmit="return confirm('Are you sure you want to permanently delete {{ char.name }}?');">
+                            <button type="submit" class="button button-small button-delete">Delete</button>
+                        </form>
+                    </div>
+                </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>You haven't created any characters yet.</p>
+        {% endif %}
+    </section>
+    <hr>
+
+    {# --- Create New Character Sections --- #}
+    <section class="character-creation-options">
+        <h3>Create New Character</h3>
+        {# Custom Creation Button Form #}
+        <form method="POST" action="{{ url_for('profile') }}">
+            <input type="hidden" name="action" value="create_char">
+             <button type="submit" class="button">Create Custom Character</button>
+        </form>
+
+        {# Pre-made Character Selection Form #}
+         {% if premade_characters %}
+            <form method="POST" action="{{ url_for('profile') }}" style="margin-top: 15px;">
+                 <h4>Or Select a Pre-made Character:</h4>
+                 <input type="hidden" name="action" value="load_premade">
+                 <div class="form-group">
+                     <select name="premade_char_id" required>
+                         <option value="" disabled selected>-- Select a Template --</option>
+                         {% for premade in premade_characters %}
+                             <option value="{{ premade.id }}">{{ premade.name }} ({{ premade.race_name }} {{ premade.class_name }})</option>
+                         {% endfor %}
+                     </select>
+                 </div>
+                 <button type="submit" class="button">Start with Pre-made</button>
+             </form>
+        {% endif %}
+    </section>
+
+    {# --- Vocabulary Highlight Color Settings --- #}
+    {# ***** FIXED: Added form tag ***** #}
+    <form method="POST" action="{{ url_for('profile') }}">
+        <section class="vocab-color-settings">
+            <h3>Vocabulary Highlight Colors</h3>
+            <p>Choose the background colors for highlighted vocabulary words.</p>
+
+            <div class="vocab-color-setting">
+                <label for="awl_color_bg">AWL Word Background:</label>
+                {# Use input type="color". Value comes from profile data. #}
+                <input type="color" id="awl_color_bg" name="awl_color_bg"
+                       value="{{ profile.vocab_settings.awl_color_bg | default('#FFE6EB') }}">
+                 <span style="margin-left: 10px; background-color: {{ profile.vocab_settings.awl_color_bg | default('#FFE6EB') }}; padding: 2px 8px; border-radius: 3px; border: 1px solid rgba(0,0,0,0.2);">Example AWL</span>
+            </div>
+             <div class="vocab-color-setting">
+                <label for="ai_color_bg">AI List Word Background:</label>
+                {# Use input type="color". Value comes from profile data. #}
+                <input type="color" id="ai_color_bg" name="ai_color_bg"
+                       value="{{ profile.vocab_settings.ai_color_bg | default('#E1F0FF') }}">
+                 <span style="margin-left: 10px; background-color: {{ profile.vocab_settings.ai_color_bg | default('#E1F0FF') }}; padding: 2px 8px; border-radius: 3px; border: 1px solid rgba(0,0,0,0.2);">Example AI</span>
+            </div>
+             <div class="form-actions" style="margin-top: 10px;">
+                 {# Button now submits this specific form #}
+                <button type="submit" name="action" value="save_settings" class="button button-small">Save Color Settings</button>
+             </div>
+        </section>
+    </form>
+    {# ***** END FIXED Section ***** #}
+    <hr>
+
+</div> {# End container #}
+{% endblock %}
+
+{% block scripts %}
+    {# Add any JavaScript specific ONLY to the profile page here #}
+{% endblock %}

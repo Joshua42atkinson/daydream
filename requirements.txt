@@ -1,0 +1,12 @@
+# Flask and Web Server
+Flask>=3.0.0 # Or your specific Flask version
+gunicorn>=21.0.0 # Production WSGI server for Cloud Run
+
+# Google Cloud / Firebase / AI
+firebase-admin>=6.0.0
+google-cloud-firestore>=2.11.0
+google-cloud-aiplatform>=1.25.0
+google-auth>=2.17.3 # Often implicitly required
+
+# Add any other direct dependencies from your other Python files (e.g., vocabulary.py if it uses specific libraries)
+# Example: numpy, pandas (if used elsewhere)

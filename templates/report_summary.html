@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}End of Chapter: Report - Daydream{% endblock %}
+
+{% block content %}
+{# Container for the end-of-chapter flow screens #}
+{# Added specific class for potential styling #}
+<div class="eoc-container report-summary-container">
+    <h2 id="summary-heading">Chapter Report Summary</h2> {# Added ID #}
+    <hr>
+
+    {# Use article for semantic report content, link to heading #}
+    <article class="report-content" aria-labelledby="summary-heading">
+        {# Display the report_summary string passed from app.py #}
+        {# Using <pre> preserves line breaks and spacing from the summary string. #}
+        {# The |safe filter is needed because app.py generates markdown-like chars (**) which we want displayed literally here. #}
+        {# For true Markdown rendering, app.py would need to convert to HTML before passing, or JS used here. #}
+        <pre>{{ report_summary | default('Report data not available.') | safe }}</pre>
+    </article>
+    <hr>
+
+    {# Form posts back to /end_of_chapter route to trigger moving to next chapter #}
+    <form method="POST" action="{{ url_for('end_of_chapter') }}">
+        {# No input needed here, just confirmation #}
+         <div class="form-actions"> {# Wrap button for styling consistency #}
+            <button type="submit" class="button">Continue Adventure</button>
+        </div>
+    </form>
+
+     {# Optional: Placeholder link for premium detailed report (if feature implemented) #}
+     {# <p class="premium-feature-placeholder" style="margin-top: 15px; font-size: 0.9em;">
+         <a href="/path/to/detailed/report/{{ chapter_number }}">View Detailed Report (Premium)</a>
+     </p> #}
+</div>
+{% endblock %}
+
+{# Removed the entire {% block styles %}...{% endblock %} section
+   Assuming styles were moved to static/style.css
+#}

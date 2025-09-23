@@ -1,0 +1,95 @@
+{% extends "base.html" %}
+
+{% block title %}Journal: Character & Quest - Daydream{% endblock %}
+
+{% block content %}
+<div class="book-container journal-view">
+
+  {# Left Page: Character Sheet #}
+  <div class="book-page left-page character-sheet">
+      <h2>Character Sheet</h2>
+      {% if character_sheet %}
+          <p><strong>Name:</strong> {{ character_sheet.name | default('N/A') }}</p>
+          <p><strong>Race:</strong> {{ character_sheet.race_name | default('N/A') }}</p>
+          <p><strong>Class:</strong> {{ character_sheet.class_name | default('N/A') }}</p>
+          <p><strong>Philosophy:</strong> {{ character_sheet.philosophy_name | default('N/A') }}</p>
+          <hr>
+          <p><strong>Fate Points:</strong> {{ character_sheet.fate_points | default('?') }}</p>
+          <hr>
+          <p><strong>Abilities:</strong> {{ character_sheet.abilities | join(', ') | default('None') }}</p>
+          <p><strong>Aspects:</strong> {{ character_sheet.aspects | join(', ') | default('None') }}</p>
+          <p><strong>Boon:</strong> {{ character_sheet.boon | default('?') }}</p>
+          <p><strong>Backstory:</strong><br><span class="preserve-whitespace">{{ character_sheet.backstory | default('(Not specified)') }}</span></p>
+          <hr> {# Add separator before inventory #}
+
+          {# --- Inventory Section --- #}
+          <div class="inventory-section">
+              <h3>Inventory</h3>
+              {# Check if inventory list exists and has items #}
+              {% if inventory %}
+                  <ul>
+                      {# Loop through items in the inventory list #}
+                      {% for item in inventory %}
+                          <li>{{ item }}</li>
+                      {% endfor %}
+                  </ul>
+              {% else %}
+                   <p><i>Empty</i></p>
+              {% endif %}
+          </div>
+          {# --- End Inventory Section --- #}
+
+          {# Placeholder for Visualize Character button removed for clarity #}
+
+      {% else %}
+          <p>Character data not available.</p>
+      {% endif %}
+      <p style="margin-top: 20px;"><a href="{{ url_for('game_view') }}">Return to Game</a></p>
+  </div>
+
+  {# Right Page: Quest Log #}
+  <div class="book-page right-page quest-log">
+      <h2>Current Quest</h2>
+      {% if quest_log %}
+          <h3>{{ quest_log.title | default('None') }}</h3>
+          {% if quest_log.title and quest_log.title != 'None' and quest_log.title != 'Unknown Quest' %} {# Improved check #}
+              <p><strong>Current Objective:</strong></p>
+              <p>{{ quest_log.step_desc | default('Objective details missing.') }}</p>
+          {% else %}
+              <p>No active quest at the moment. Time to explore!</p>
+          {% endif %}
+          {# Optional: Add section for completed quests later #}
+          {# <h4>Completed Quests:</h4> #}
+          {# Loop through p_data[FS_QUEST_FLAGS] for keys starting with 'quest_' and ending with '_completed'? #}
+      {% else %}
+          <p>Quest information not available.</p>
+      {% endif %}
+       <p style="margin-top: 20px;"><a href="{{ url_for('journal_vocab_report') }}">View Vocab/Reports</a></p>
+  </div>
+</div>
+{% endblock %}
+
+{% block styles %}
+   {{ super() }}
+   <style>
+       .character-sheet hr, .quest-log hr { margin: 10px 0; }
+       .character-sheet p, .quest-log p, .quest-log h3 { margin-bottom: 8px; }
+       .character-sheet p strong { display: inline-block; min-width: 70px; } /* Align labels */
+
+       /* Style for backstory */
+       .preserve-whitespace {
+           white-space: pre-wrap; /* Respect newlines and wrap text */
+           word-wrap: break-word;
+           display: block;
+       }
+
+       /* --- Styles for Inventory Section --- */
+       .inventory-section { margin-top: 15px; }
+       .inventory-section h3 { margin-bottom: 5px; font-size: 1.1em; color: #5a4a42;}
+       .inventory-section ul { list-style: disc; padding-left: 20px; margin: 5px 0 0 0; }
+       .inventory-section li { margin-bottom: 3px; font-size: 0.95em; }
+       .inventory-section p i { color: #777; } /* Style for 'Empty' text */
+       /* --- End Inventory Styles --- */
+
+   </style>
+{% endblock %}

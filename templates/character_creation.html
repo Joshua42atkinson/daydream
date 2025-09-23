@@ -1,0 +1,162 @@
+{% extends "base.html" %} {# MUST be the very first line #}
+
+{% block title %}Create Character - Daydream{% endblock %}
+
+{% block styles %}
+{# Add page-specific styles if needed #}
+{% endblock %}
+
+{% block content %}
+<div class="book-container creation-view"> {# Use book container #}
+
+    {# Left Page: Character Creation Form #}
+    <section class="book-page left-page">
+        <h2>Create Your Character</h2>
+        <p>Define your presence on Dumpster Planet. Choose from existing lore or forge your own path.</p>
+        <hr>
+
+        {# --- Main Form for Submitting/Finalizing --- #}
+        <form method="POST" action="{{ url_for('character_creation_view') }}" aria-labelledby="character-form-heading">
+             <h3 id="character-form-heading" class="visually-hidden">Character Details Form</h3>
+
+             {# Determine the current stage for hidden input value #}
+             {% set current_stage = 'finalize' if reviewing else 'submit_details' %}
+             <input type="hidden" name="creation_stage" value="{{ current_stage }}">
+
+             {# Fields are read-only ONLY during the review stage (reviewing=True), NOT during edit stage #}
+             {% set is_readonly = True if reviewing else False %}
+
+             {# --- Form Fields --- #}
+             {# (Fields: Name, Race, Class, Philosophy, Boon, Backstory, Starting Quest) #}
+             {# These are the same as the previous version, respecting the is_readonly flag #}
+             <div class="form-group">
+                 <label for="name">Name:</label>
+                 <input type="text" id="name" name="name" value="{{ char_details.name | default('') }}" required {% if is_readonly %}readonly{% endif %}>
+             </div>
+             <div class="form-group">
+                 <label for="race_name">Race:</label>
+                 <select id="race_name" name="race_name" required {% if is_readonly %}disabled{% endif %}>
+                     <option value="" disabled {% if not char_details.race_name %}selected{% endif %}>-- Select Race --</option>
+                     {% for race in race_options %}
+                         <option value="{{ race }}" {% if char_details.race_name == race %}selected{% endif %}>{{ race }}</option>
+                     {% endfor %}
+                 </select>
+                 {% if is_readonly %}<input type="hidden" name="race_name" value="{{ char_details.race_name }}">{% endif %}
+             </div>
+              <div class="form-group">
+                 <label for="class_name">Class:</label>
+                 <select id="class_name" name="class_name" required {% if is_readonly %}disabled{% endif %}>
+                     <option value="" disabled {% if not char_details.class_name %}selected{% endif %}>-- Select Class --</option>
+                     {% for cls in class_options %}
+                         <option value="{{ cls }}" {% if char_details.class_name == cls %}selected{% endif %}>{{ cls }}</option>
+                     {% endfor %}
+                 </select>
+                 {% if is_readonly %}<input type="hidden" name="class_name" value="{{ char_details.class_name }}">{% endif %}
+             </div>
+              <div class="form-group">
+                 <label for="philosophy_name">Philosophy:</label>
+                 <select id="philosophy_name" name="philosophy_name" required {% if is_readonly %}disabled{% endif %}>
+                     <option value="" disabled {% if not char_details.philosophy_name %}selected{% endif %}>-- Select Philosophy --</option>
+                     {% for phil in philosophy_options %}
+                         <option value="{{ phil }}" {% if char_details.philosophy_name == phil %}selected{% endif %}>{{ phil }}</option>
+                     {% endfor %}
+                 </select>
+                 {% if is_readonly %}<input type="hidden" name="philosophy_name" value="{{ char_details.philosophy_name }}">{% endif %}
+             </div>
+             <div class="form-group">
+                <label for="boon">Starting Boon (Unique Item/Companion):</label>
+                <input type="text" id="boon" name="boon" value="{{ char_details.boon | default('') }}" placeholder="e.g., A Cracked Data Slate, Loyal Scrap-Rat" required {% if is_readonly %}readonly{% endif %}>
+            </div>
+             <div class="form-group">
+                <label for="backstory">Backstory (Brief - 2-3 sentences):</label>
+                <textarea id="backstory" name="backstory" rows="4" required {% if is_readonly %}readonly{% endif %}>{{ char_details.backstory | default('') }}</textarea>
+            </div>
+              <div class="form-group">
+                <label for="starting_quest">Opening Goal / Quest Idea:</label>
+                <input type="text" id="starting_quest" name="starting_quest" value="{{ char_details.starting_quest | default('') }}" placeholder="e.g., Find info on the Great Recycler, Build a shelter" required {% if is_readonly %}readonly{% endif %}>
+             </div>
+             {# --- End Form Fields --- #}
+
+             {# --- Submit/Finalize Button --- #}
+             <div class="form-actions">
+                 {# Show "Finalize" only if reviewing (locked), otherwise "Submit for Review" #}
+                 {% if reviewing %}
+                      <button type="submit" class="button">Finalize Character</button>
+                 {% else %}
+                     <button type="submit" class="button">Submit for Review</button>
+                 {% endif %}
+             </div>
+        </form> {# End Main Form #}
+
+        {# --- Actions during Review Stage --- #}
+        {# Show "Edit" and "Start Over" only when reviewing #}
+        {% if reviewing %}
+            <div class="review-actions" style="margin-top: 10px; display: flex; gap: 10px;">
+                {# Edit Button Form #}
+                <form method="POST" action="{{ url_for('character_creation_view') }}">
+                    <input type="hidden" name="creation_stage" value="edit">
+                    <button type="submit" class="button button-secondary">Edit Details</button>
+                </form>
+                {# Start Over Button Form #}
+                <form method="POST" action="{{ url_for('character_creation_view') }}">
+                    <input type="hidden" name="creation_stage" value="restart">
+                    <button type="submit" class="button button-secondary">Start Over</button>
+                </form>
+            </div>
+        {% endif %}
+
+    </section>
+
+    {# Right Page: Summary and AI Feedback #}
+    <section class="book-page right-page">
+        <h2 id="review-heading">Character Summary & Review</h2>
+
+        {# --- Character Summary (Shown during review OR edit) --- #}
+        {# Show summary if details exist (i.e., not the initial empty state) #}
+        {% if char_details %}
+        <div class="creation-summary" aria-labelledby="review-heading">
+            <dl>
+                 <dt>Name:</dt><dd>{{ char_details.name }}</dd>
+                 <dt>Race:</dt><dd>{{ char_details.race_name }}</dd>
+                 <dt>Class:</dt><dd>{{ char_details.class_name }}</dd>
+                 <dt>Philosophy:</dt><dd>{{ char_details.philosophy_name }}</dd>
+                 <dt>Boon:</dt><dd>{{ char_details.boon }}</dd>
+                 <dt>Backstory:</dt><dd style="white-space: pre-wrap;">{{ char_details.backstory }}</dd>
+                 <dt>Starting Goal:</dt><dd>{{ char_details.starting_quest }}</dd>
+            </dl>
+        </div>
+        <hr>
+        {% endif %}
+
+        {# --- AI Recommendations Area --- #}
+        <div class="ai-feedback-area" aria-live="polite">
+            <h3>AI Narrative Suggestions</h3>
+             {# Show AI suggestions only if they exist (passed during review stage) #}
+             {% if ai_recommendations is defined %}
+                 {# Check the value of ai_recommendations passed from the server #}
+                 {% if ai_recommendations is none %} {# Review failed #}
+                    <p class="error-message">Could not get AI review suggestions at this time. You can finalize the character as is, edit, or click Start Over.</p>
+                 {% elif ai_recommendations %} {# Suggestions exist #}
+                     <p>Consider these suggestions. You can Finalize, Edit Details based on feedback, or Start Over:</p>
+                     <ul>
+                         {% for item in ai_recommendations %}
+                             <li><strong>{{ item.field | capitalize }}:</strong> {{ item.suggestion }} (<i>Type: {{ item.type }}</i>)</li>
+                         {% endfor %}
+                     </ul>
+                 {% else %} {# Review successful, no suggestions #}
+                     <p>Looks good! Click Finalize Character, Edit Details if you changed your mind, or Start Over.</p>
+                 {% endif %}
+             {% else %}
+                  {# Message shown when fields are editable (initial stage or edit stage) #}
+                 <p>Fill out or edit your character details using the form on the left. Click "Submit for Review" when ready.</p>
+             {% endif %}
+        </div>
+    </section>
+
+</div> {# End book-container #}
+{% endblock %}
+
+
+{% block scripts %}
+{# Add page-specific scripts if needed #}
+{% endblock %}

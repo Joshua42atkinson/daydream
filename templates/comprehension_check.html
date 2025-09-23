@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}End of Chapter: Reflection - Daydream{% endblock %}
+
+{% block content %}
+{# Container for the end-of-chapter flow screens #}
+{# Added a more specific class for potential styling #}
+<div class="eoc-container comprehension-check-container">
+    <h2 id="reflection-heading">Chapter Reflection</h2> {# Added ID for aria-labelledby #}
+    <p>Before moving on, let's reflect on the chapter you just completed. Please answer the following questions thoughtfully:</p>
+    <hr>
+
+    {# Form posts answers back to the /end_of_chapter route #}
+    {# Added aria-labelledby to associate form with heading #}
+    <form method="POST" action="{{ url_for('end_of_chapter') }}" aria-labelledby="reflection-heading">
+        {# Check if questions list exists and has items #}
+        {% if questions %}
+            {# Loop through each question passed from app.py #}
+            {% for question in questions %}
+                <div class="form-group">
+                    {# Display the question number and text #}
+                    {# Label remains correctly associated via 'for' attribute #}
+                    <label for="comp_answer_{{ loop.index }}">
+                        {{ loop.index }}. {{ question }}
+                    </label>
+                    {# Text area for the answer. Name must match app.py logic #}
+                    {# Added placeholder text #}
+                    <textarea id="comp_answer_{{ loop.index }}" name="comp_answer_{{ loop.index }}" rows="3" required placeholder="Your thoughtful answer here..."></textarea>
+                </div>
+            {% endfor %}
+             <div class="form-actions"> {# Wrap button for styling consistency #}
+                <button type="submit" class="button">Submit Answers</button>
+            </div>
+        {% else %}
+            {# Fallback if no questions were passed #}
+            <p>No reflection questions available at this time.</p>
+             <div class="form-actions"> {# Wrap button for styling consistency #}
+                 {# Provide a way to continue if questions failed #}
+                 <button type="submit" class="button">Continue (No Questions)</button>
+             </div>
+        {% endif %}
+    </form>
+</div>
+{% endblock %}
+
+{# Removed the entire {% block styles %}...{% endblock %} section
+   Assuming styles were moved to static/style.css
+#}

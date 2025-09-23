@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block title %}
+  {% if character_data and character_data.name %}
+      {{ character_data.name }} - {{ character_data.current_location_name | default('Unknown Location') }}
+  {% else %}
+      Daydream
+  {% endif %}
+{% endblock %}
+
+{% block content %}
+{# The top info bar defined in base.html will appear above this content #}
+
+<div class="book-container game-view"> {# Use the main book container #}
+
+  {# Left Page: Narrative Log #}
+  <div class="book-page left-page narrative-log-container">
+      <h2>Storyteller</h2>
+      <div id="conversation-log" class="narrative-log">
+          {# Loop through conversation list (list of dictionaries) #}
+          {% for message in conversation %}
+              {# Apply the appropriate class based on speaker #}
+              <div class="message speaker-{{ message.speaker | lower }}">
+                  {# Displaying Speaker Label is handled by CSS now if desired #}
+                  {# Text is pre-processed in app.py with highlighting, use |safe #}
+                  <span>{{ message.text | safe }}</span>
+              </div>
+          {% endfor %}
+      </div>
+      {# Scroll to bottom script is in the scripts block #}
+  </div>{# End left-page #}
+
+  {# Right Page: Quest Info & Input Area #}
+  <div class="book-page right-page input-area-container">
+
+      {# Current Quest Objective Display #}
+      <div class="current-quest-display">
+          <h3>Current Objective</h3>
+          <p>
+              <strong>{{ character_data.current_quest_title | default('Quest') }}:</strong>
+              {{ character_data.current_step_description | default('Explore your surroundings.') }}
+          </p>
+          {# Removed the <hr> from here for now, as the form below provides separation #}
+      </div>
+
+      {# Chat Input Form #}
+      <h2 style="margin-top: 15px;">Create your story here:</h2> {# Added margin top to space from quest #}
+      <form id="chat-input-form" method="POST" action="{{ url_for('game_view') }}">
+          {# Textarea with rows="10" #}
+          <textarea id="player_input" name="player_input" rows="12" autofocus
+                    placeholder="Describe your character's actions here..."></textarea>
+          <button type="submit" class="button">Send</button>
+      </form>
+
+  </div> {# End right-page #}
+
+</div> {# End book-container #}
+{% endblock %}
+
+
+{% block scripts %}
+  {{ super() }} {# Include scripts from base if any #}
+
+  {# Pass ONLY lore data to JavaScript for hover lookups #}
+  <script>
+      // Make lore data available globally within this script block
+      // Ensure the variable name matches what's passed from app.py
+      const thetopia_lore_data = {{ thetopia_lore_data | safe if thetopia_lore_data else '{}' }};
+
+      // --- Function to add Lore Highlighting Listeners ---
+      // (Handles hover events to show tooltips for .lore-term elements)
+      function addLoreHighlightingListeners(containerElement) {
+           containerElement.querySelectorAll('.lore-term').forEach(span => {
+               if (span.dataset.loreListenerAdded === 'true') return; // Avoid duplicates
+
+               span.addEventListener('mouseover', (event) => {
+                   const pathString = span.dataset.lorePath; // Get path from data attribute
+                   let definition = "Lore definition not found.";
+                   try {
+                       const path = JSON.parse(pathString || '[]');
+                       if (path.length > 0) {
+                           let currentLevel = thetopia_lore_data;
+                           for (const key of path) {
+                               if (currentLevel && typeof currentLevel === 'object' && key in currentLevel) {
+                                   currentLevel = currentLevel[key];
+                               } else {
+                                   currentLevel = null; break;
+                               }
+                           }
+                           // Extract definition (string or object with description)
+                           if (typeof currentLevel === 'string') { definition = currentLevel; }
+                           else if (currentLevel && typeof currentLevel === 'object' && currentLevel.description) { definition = currentLevel.description; }
+                       }
+                   } catch (e) { console.error("Error parsing lore path or finding definition:", pathString, e); definition = "Error retrieving lore."; }
+                   // Set title attribute for browser tooltip, escape quotes
+                   span.title = definition.replace(/"/g, '&quot;');
+               });
+               span.dataset.loreListenerAdded = 'true'; // Mark as processed
+           });
+      }
+
+      // --- Function to scroll log to bottom ---
+      function scrollLogToBottom() {
+            const log = document.getElementById("conversation-log");
+            if (log) {
+                // Use a small timeout to allow rendering
+                setTimeout(() => { log.scrollTop = log.scrollHeight; }, 50);
+            }
+      }
+
+      // --- Run on initial load ---
+      document.addEventListener('DOMContentLoaded', () => {
+          const conversationLog = document.getElementById("conversation-log");
+          if (conversationLog) {
+              addLoreHighlightingListeners(conversationLog); // Apply lore listeners
+              scrollLogToBottom(); // Scroll on load
+          }
+
+          // Also apply listeners if new content is added dynamically later (using MutationObserver - advanced)
+          // const observer = new MutationObserver(mutations => {
+          //     mutations.forEach(mutation => {
+          //         mutation.addedNodes.forEach(node => {
+          //             if (node.nodeType === 1) { // Check if it's an element
+          //                 addLoreHighlightingListeners(node);
+          //             }
+          //         });
+          //     });
+          //     scrollLogToBottom(); // Scroll when new content is added
+          // });
+          // if (conversationLog) {
+          //     observer.observe(conversationLog, { childList: true });
+          // }
+      });
+  </script>
+{% endblock %}
