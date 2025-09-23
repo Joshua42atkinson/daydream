@@ -125,7 +125,7 @@ thetopia_lore = {
         },
     },
 
-    "religions": { # Renamed to Philosophies later
+    "philosophies": {
         # Descriptions reframed for the new context
         "Becoming Awesome": {
             "lore_in_thetopia": "A philosophy focused on maximizing individual potential. Adherents believe the Great Recycler's goal is best served by constantly improving oneself, striving for excellence in skills and form, seeing self-actualization as the ultimate 'recycling'.",
