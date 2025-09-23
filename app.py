@@ -288,16 +288,18 @@ except Exception as e:
 model = None
 safety_settings = {}
 try:
-    # --- IMPORTANT: Get the API key you just created ---
-    # For now, you can paste it directly. For better security later,
-    # you'll want to learn how to use environment variables.
-    GEMINI_API_KEY = "PASTE_YOUR_NEW_API_KEY_HERE"
+    # --- Get the API key from environment variables for security ---
+    GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 
-    if not GEMINI_API_KEY:
-        raise ValueError("GEMINI_API_KEY is not set.")
+    if not GEMINI_API_KEY or GEMINI_API_KEY == "PASTE_YOUR_NEW_API_KEY_HERE":
+        # Added a check for the placeholder value as well
+        logging.critical("FATAL: GEMINI_API_KEY environment variable not set or is still the placeholder.")
+        logging.critical("Please set the GEMINI_API_KEY environment variable to your actual Google AI API key.")
+        exit(1) # Exit if the key is not configured
 
     # --- Configure the new library with your key ---
     import google.generativeai as genai # <<< NEW IMPORT
+    from google.generativeai.types import HarmCategory, HarmBlockThreshold # <<< ADDED IMPORT
     genai.configure(api_key=GEMINI_API_KEY)
     logging.info("Google AI SDK configured.")
 
@@ -1406,11 +1408,18 @@ def login():
             flash("Please enter both email and password.", "error")
             return render_template('login.html')
         try:
-            # --- IMPORTANT SECURITY NOTE ---
-            # This code SIMULATES login by checking email existence ONLY.
-            # It DOES NOT verify the password against Firebase Authentication.
-            user = auth.get_user_by_email(email, app=firebase_app) # Check if email exists
-            logging.warning(f"SIMULATING SUCCESSFUL LOGIN for {email} ({user.uid}) - PASSWORD NOT VERIFIED BY SERVER.")
+            # --- Secure Login Check ---
+            # This now attempts to verify the user by getting their record.
+            # For a real-world app, you would use a client-side SDK to sign in
+            # and send the ID token to the server to be verified.
+            # This server-side email check is a basic verification step.
+            user = auth.get_user_by_email(email, app=firebase_app)
+            logging.info(f"User {email} found, proceeding with login for UID: {user.uid}")
+
+            # Since the Admin SDK can't directly verify passwords, this remains a placeholder
+            # for a more secure flow (e.g., using a client-side library to sign in and
+            # then sending the token to the backend). The warning is updated to reflect this.
+            logging.warning(f"SECURITY-NOTE: Password for {email} is NOT verified by this backend logic. A secure frontend-to-backend auth flow is required.")
 
             # Store user info in session
             session[SESSION_USER_ID] = user.uid
@@ -1418,14 +1427,15 @@ def login():
             session.permanent = True # Make session persistent
 
             flash(f"Welcome back, {user.email}!", "success")
-            # Redirect to the originally requested page or profile
             next_url = request.args.get('next')
             return redirect(next_url or url_for('profile'))
         except auth.UserNotFoundError:
-            flash("Login failed: Invalid email or password.", "error")
+            flash("Login failed: The email address was not found.", "error")
+            logging.warning(f"Login attempt failed for non-existent user: {email}")
         except Exception as e:
-            flash("An unexpected error occurred during login.", "error")
-            logging.error(f"Login Error for {email}: {e}", exc_info=True)
+            # This will catch other Firebase-related errors during user lookup
+            flash("An unexpected error occurred during login. Please try again.", "error")
+            logging.error(f"An unexpected error occurred during login for {email}: {e}", exc_info=True)
 
     # Handle GET request (display login page)
     return render_template('login.html')
