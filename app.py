@@ -1408,18 +1408,14 @@ def login():
             flash("Please enter both email and password.", "error")
             return render_template('login.html')
         try:
-            # --- Secure Login Check ---
-            # This now attempts to verify the user by getting their record.
-            # For a real-world app, you would use a client-side SDK to sign in
-            # and send the ID token to the server to be verified.
-            # This server-side email check is a basic verification step.
+            # --- IMPORTANT SECURITY WARNING ---
+            # The following code block is for DEVELOPMENT and TESTING ONLY.
+            # It finds a user by email but DOES NOT VERIFY THE PASSWORD.
+            # For a production application, this MUST be replaced with a secure
+            # client-side authentication flow that sends a verified ID token
+            # to the backend, as demonstrated in the previous version of this function.
             user = auth.get_user_by_email(email, app=firebase_app)
-            logging.info(f"User {email} found, proceeding with login for UID: {user.uid}")
-
-            # Since the Admin SDK can't directly verify passwords, this remains a placeholder
-            # for a more secure flow (e.g., using a client-side library to sign in and
-            # then sending the token to the backend). The warning is updated to reflect this.
-            logging.warning(f"SECURITY-NOTE: Password for {email} is NOT verified by this backend logic. A secure frontend-to-backend auth flow is required.")
+            logging.warning(f"INSECURE LOGIN: Bypassing password verification for user {email} ({user.uid}) for development purposes.")
 
             # Store user info in session
             session[SESSION_USER_ID] = user.uid
