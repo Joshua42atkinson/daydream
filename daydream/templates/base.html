@@ -17,7 +17,7 @@
     <header class="top-info-bar">
         {# Left side: Branding and maybe basic game state #}
         <div class="bar-left">
-             <a href="{{ url_for('profile') if session.user_id else url_for('login') }}" style="font-weight: bold; font-size: 1.1em; border: none;">Daydream</a>
+             <a href="{{ url_for('profile.profile') if session.user_id else url_for('auth.login') }}" style="font-weight: bold; font-size: 1.1em; border: none;">Daydream</a>
              {# Display character info if available (Requires passing character_data to base template or checking session) #}
              {# Example check (adjust based on how you pass data): #}
              {% if session.get('character_id') and character_data %}
@@ -30,14 +30,14 @@
         {# Right side: Navigation links based on login status #}
         <div class="bar-right">
              {% if session.user_id %}
-                <a href="{{ url_for('profile') }}">Profile</a>
-                <a href="{{ url_for('game_view') }}">Game</a>
-                <a href="{{ url_for('journal_char_quest') }}">Journal (Char/Quest)</a>
-                <a href="{{ url_for('journal_vocab_report') }}">Journal (Vocab/Reports)</a>
-                <a href="{{ url_for('logout') }}">Logout</a>
+                <a href="{{ url_for('profile.profile') }}">Profile</a>
+                <a href="{{ url_for('game.game_view') }}">Game</a>
+                <a href="{{ url_for('journal.journal_char_quest') }}">Journal (Char/Quest)</a>
+                <a href="{{ url_for('journal.journal_vocab_report') }}">Journal (Vocab/Reports)</a>
+                <a href="{{ url_for('auth.logout') }}">Logout</a>
             {% else %}
-                <a href="{{ url_for('login') }}">Login</a>
-                <a href="{{ url_for('signup') }}">Sign Up</a>
+                <a href="{{ url_for('auth.login') }}">Login</a>
+                <a href="{{ url_for('auth.signup') }}">Sign Up</a>
             {% endif %}
         </div>
     </header>

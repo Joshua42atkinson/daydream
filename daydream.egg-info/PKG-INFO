@@ -1,0 +1,11 @@
+Metadata-Version: 2.4
+Name: daydream
+Version: 0.1.0
+Summary: A narrative-driven game application.
+Project-URL: Homepage, https://github.com/user/daydream
+Project-URL: Bug Tracker, https://github.com/user/daydream/issues
+Classifier: Programming Language :: Python :: 3
+Classifier: Framework :: Flask
+Classifier: Operating System :: OS Independent
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown

@@ -9,7 +9,7 @@
 
     {# Form posts data to the /login route defined in app.py #}
     {# Added aria-labelledby #}
-    <form method="POST" action="{{ url_for('login') }}" aria-labelledby="login-heading">
+    <form method="POST" action="{{ url_for('auth.login') }}" aria-labelledby="login-heading">
         <div class="form-group">
             <label for="email">Email:</label>
             {# Added autocomplete attribute for better browser/password manager integration #}
@@ -25,7 +25,7 @@
         </div>
     </form>
     <p class="auth-switch"> {# Added class for potential styling #}
-        Don't have an account? <a href="{{ url_for('signup') }}">Sign Up here</a>
+        Don't have an account? <a href="{{ url_for('auth.signup') }}">Sign Up here</a>
     </p>
 </div>
 {% endblock %}
