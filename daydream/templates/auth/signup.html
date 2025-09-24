@@ -8,7 +8,7 @@
 
     {# This form posts data to the /signup route defined in app.py #}
     {# Added aria-labelledby and novalidate (as we'll use JS validation) #}
-    <form id="signup-form" method="POST" action="{{ url_for('signup') }}" aria-labelledby="signup-heading" novalidate>
+    <form id="signup-form" method="POST" action="{{ url_for('auth.signup') }}" aria-labelledby="signup-heading" novalidate>
         <div class="form-group">
             <label for="email">Email:</label>
             {# Added autocomplete #}
@@ -34,7 +34,7 @@
         </div>
     </form>
     <p class="auth-switch"> {# Added class #}
-        Already have an account? <a href="{{ url_for('login') }}">Login here</a>
+        Already have an account? <a href="{{ url_for('auth.login') }}">Login here</a>
     </p>
 </div>
 {% endblock %}

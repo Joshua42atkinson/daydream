@@ -123,6 +123,18 @@ SUBLIST_TO_CATEGORY = {
 AWL_CATEGORIZED = {word: SUBLIST_TO_CATEGORY.get(sublist, 'medium') # Default to medium if sublist missing?
                    for word, sublist in AWL_WORDS.items()}
 
+import json
+import logging
+
+# --- Load AWL Definitions ---
+AWL_DEFINITIONS = {}
+try:
+    with open('awl_definitions.json', 'r', encoding='utf-8') as f:
+        AWL_DEFINITIONS = json.load(f)
+except (FileNotFoundError, json.JSONDecodeError) as e:
+    logging.warning(f"Could not load awl_definitions.json: {e}")
+
+
 # --- Main XP Calculation Function ---
 
 def calculate_xp(player_input_text: str, learned_vocab_set: set) -> tuple[int, set]:
