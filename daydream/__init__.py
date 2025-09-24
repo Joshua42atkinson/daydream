@@ -144,7 +144,7 @@ def create_app(test_config=None):
     app.register_blueprint(game_bp)
 
     from .character import bp as char_bp
-    app.register_blueprint(char_bp)
+    app.register_blueprint(char_bp, url_prefix='/character')
 
     from .journal import bp as journal_bp
     app.register_blueprint(journal_bp)
