@@ -1,9 +1,9 @@
+README.md
 pyproject.toml
 daydream/__init__.py
 daydream/lore.py
 daydream/quests.py
 daydream/utils.py
-daydream/vocabulary.py
 daydream.egg-info/PKG-INFO
 daydream.egg-info/SOURCES.txt
 daydream.egg-info/dependency_links.txt
@@ -21,7 +21,9 @@ daydream/journal/routes.py
 daydream/profile/__init__.py
 daydream/profile/routes.py
 daydream/vocabulary/__init__.py
+daydream/vocabulary/core.py
 daydream/vocabulary/routes.py
+tests/conftest.py
 tests/test_auth.py
 tests/test_character.py
 tests/test_factory.py

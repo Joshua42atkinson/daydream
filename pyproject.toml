@@ -17,3 +17,6 @@ classifiers = [
 [project.urls]
 "Homepage" = "https://github.com/user/daydream" # Placeholder
 "Bug Tracker" = "https://github.com/user/daydream/issues" # Placeholder
+
+[tool.setuptools.packages.find]
+where = ["."]
