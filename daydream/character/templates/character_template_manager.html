@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}Character Template Manager{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="my-4">Character Template Manager</h1>
+
+    <div class="row">
+        <!-- Race Templates -->
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h2>Race Templates</h2>
+                </div>
+                <div class="card-body">
+                    <p>Upload new race templates in JSON format.</p>
+                    <form action="{{ url_for('character.upload_template', template_type='races') }}" method="post" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <input type="file" class="form-control-file" name="template_file" accept=".json" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Upload Race</button>
+                    </form>
+                    <hr>
+                    <h4>Current Race Files</h4>
+                    <ul>
+                        {% for file in race_files %}
+                            <li>{{ file }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Class Templates -->
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h2>Class Templates</h2>
+                </div>
+                <div class="card-body">
+                    <p>Upload new class templates in JSON format.</p>
+                    <form action="{{ url_for('character.upload_template', template_type='classes') }}" method="post" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <input type="file" class="form-control-file" name="template_file" accept=".json" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Upload Class</button>
+                    </form>
+                    <hr>
+                    <h4>Current Class Files</h4>
+                    <ul>
+                        {% for file in class_files %}
+                            <li>{{ file }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Philosophy Templates -->
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h2>Philosophy Templates</h2>
+                </div>
+                <div class="card-body">
+                    <p>Upload new philosophy templates in JSON format.</p>
+                    <form action="{{ url_for('character.upload_template', template_type='philosophies') }}" method="post" enctype="multipart/form-data">
+                        <div class="form-group">
+                            <input type="file" class="form-control-file" name="template_file" accept=".json" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Upload Philosophy</button>
+                    </form>
+                    <hr>
+                    <h4>Current Philosophy Files</h4>
+                    <ul>
+                        {% for file in philosophy_files %}
+                            <li>{{ file }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

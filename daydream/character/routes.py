@@ -2,13 +2,30 @@ import logging
 import uuid
 from flask import render_template, request, redirect, url_for, session, flash
 from . import bp
+import os
+import json
+import logging
 from ..utils import (
     login_required, get_ai_response, save_character_data,
-    RACE_DATA, CLASS_DATA, PHILOSOPHY_DATA,
     SESSION_USER_ID, SESSION_NEW_CHAR_DETAILS, SESSION_AI_RECOMMENDATIONS,
     STARTING_LOCATION, BASE_FATE_POINTS, FS_CONVERSATION, FS_CHAPTER_INPUTS,
     FS_QUEST_FLAGS, FS_INVENTORY, SESSION_EOC_PROMPTED
 )
+
+def load_character_template_data(filename):
+    """Loads character template data from a JSON file."""
+    base_dir = os.path.dirname(os.path.abspath(__file__))
+    file_path = os.path.join(base_dir, 'data', filename)
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError) as e:
+        logging.error(f"Could not load character template data from {file_path}: {e}")
+        return {}
+
+RACE_DATA = load_character_template_data('races.json')
+CLASS_DATA = load_character_template_data('classes.json')
+PHILOSOPHY_DATA = load_character_template_data('philosophies.json')
 from .. import db
 from ..quests import get_quest, get_quest_step
 
@@ -107,6 +124,78 @@ def character_creation_view():
         recommendations_from_session = session.get(SESSION_AI_RECOMMENDATIONS)
         is_reviewing_stage = bool(char_details_from_session and recommendations_from_session is not None)
         return render_template('character/character_creation.html', race_options=list(RACE_DATA.keys()), class_options=list(CLASS_DATA.keys()), philosophy_options=list(PHILOSOPHY_DATA.keys()), char_details=char_details_from_session or {}, ai_recommendations=recommendations_from_session, reviewing=is_reviewing_stage)
+
+from werkzeug.utils import secure_filename
+
+DATA_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
+
+@bp.route('/templates')
+@login_required
+def template_manager():
+    """Renders the character template management page."""
+    os.makedirs(DATA_PATH, exist_ok=True)
+
+    try:
+        all_files = os.listdir(DATA_PATH)
+        race_files = [f for f in all_files if f.startswith('races') and f.endswith('.json')]
+        class_files = [f for f in all_files if f.startswith('classes') and f.endswith('.json')]
+        philosophy_files = [f for f in all_files if f.startswith('philosophies') and f.endswith('.json')]
+    except OSError as e:
+        logging.error(f"Error accessing character template directory {DATA_PATH}: {e}")
+        flash("Could not access character template directory.", "error")
+        race_files, class_files, philosophy_files = [], [], []
+
+    return render_template('character_template_manager.html',
+                           race_files=race_files,
+                           class_files=class_files,
+                           philosophy_files=philosophy_files)
+
+@bp.route('/templates/upload/<string:template_type>', methods=['POST'])
+@login_required
+def upload_template(template_type):
+    """Handles uploading of new character template JSON files."""
+    if template_type not in ['races', 'classes', 'philosophies']:
+        flash("Invalid template type specified.", "error")
+        return redirect(url_for('character.template_manager'))
+
+    if 'template_file' not in request.files:
+        flash('No file part in the request.', 'error')
+        return redirect(url_for('character.template_manager'))
+
+    file = request.files['template_file']
+    if file.filename == '':
+        flash('No file selected for uploading.', 'warning')
+        return redirect(url_for('character.template_manager'))
+
+    if file and file.filename.endswith('.json'):
+        filename = secure_filename(file.filename)
+        # To prevent overwriting the default, we might want to rename if it matches.
+        # For now, we'll allow it.
+        save_path = os.path.join(DATA_PATH, filename)
+
+        try:
+            # Validate JSON content
+            json_data = json.load(file)
+            if not isinstance(json_data, dict):
+                raise ValueError("JSON content must be a dictionary.")
+
+            # Save the validated JSON data
+            with open(save_path, 'w', encoding='utf-8') as f:
+                json.dump(json_data, f, indent=4)
+
+            flash(f'Template file "{filename}" for {template_type} uploaded successfully.', 'success')
+
+        except json.JSONDecodeError:
+            flash('Invalid JSON file. Please check the file content and structure.', 'error')
+        except ValueError as e:
+            flash(str(e), 'error')
+        except Exception as e:
+            logging.error(f"Error saving uploaded template file {filename}: {e}")
+            flash('An unexpected error occurred while saving the file.', 'error')
+    else:
+        flash('Invalid file type. Please upload a .json file.', 'error')
+
+    return redirect(url_for('character.template_manager'))
 
 @bp.route('/delete/<char_id>', methods=['POST'])
 @login_required

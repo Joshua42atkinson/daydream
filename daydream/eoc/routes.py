@@ -85,11 +85,45 @@ def end_of_chapter():
             save_character_data(user_id, p_data)
             return redirect(url_for('eoc.end_of_chapter'))
         elif eoc_state == 'AWAIT_REPORT_ACK':
-            current_chapter_num = len(p_data.get('report_summaries', []))
+            summaries = p_data.get('report_summaries', [])
+            current_chapter_num = len(summaries)
+
+            # Check if the full 12-stage journey is complete
+            if current_chapter_num > 0 and current_chapter_num % 12 == 0:
+                session[SESSION_EOC_STATE] = 'AWAIT_FINAL_REVIEW_ACK'
+                # Trigger the final review process
+                final_review_ctx = {
+                    "character_data": p_data,
+                    "all_chapter_summaries": summaries
+                }
+                final_review_res = get_ai_response("GENERATE_FINAL_REVIEW", final_review_ctx)
+
+                if isinstance(final_review_res, dict) and 'final_narrative' in final_review_res:
+                    session[SESSION_EOC_SUMMARY] = final_review_res['final_narrative']
+                    flash("You have completed a full Hero's Journey! A final review is available.", "success")
+                else:
+                    session[SESSION_EOC_SUMMARY] = "The AI storyteller is gathering its thoughts for your final review. Please check back shortly."
+                    flash("You've completed a full cycle! The final review is being prepared.", "info")
+
+                # Optionally, reset summaries for the next journey
+                # p_data['report_summaries'] = []
+
+                save_character_data(user_id, p_data)
+                return redirect(url_for('eoc.end_of_chapter'))
+
+            # Standard next chapter generation
             stage_index = current_chapter_num % len(HERO_JOURNEY_STAGES)
-            next_stage = HERO_JOURNEY_STAGES[stage_index]
-            q_gen_ctx = {"character_data": p_data, "chapter_summaries": p_data.get('report_summaries', []), "next_hero_journey_stage": next_stage}
+            next_stage_data = HERO_JOURNEY_STAGES[stage_index]
+
+            q_gen_ctx = {
+                "character_data": p_data,
+                "chapter_summaries": summaries,
+                "next_hero_journey_stage": next_stage_data['title'],
+                "next_stage_description": next_stage_data['description'],
+                "next_stage_keywords": next_stage_data['keywords']
+            }
             q_gen_res = get_ai_response("GENERATE_NEXT_QUEST", q_gen_ctx)
+
             if isinstance(q_gen_res, dict) and 'error' not in q_gen_res:
                 p_data['current_quest_id'] = q_gen_res.get('quest_id')
                 p_data['current_quest_title'] = q_gen_res.get('title')
@@ -98,6 +132,7 @@ def end_of_chapter():
                 flash(f"New objective received: {p_data['current_quest_title']}", "info")
             else:
                 flash(f"The AI storyteller had trouble determining your next quest. Time to explore!", "warning")
+
             p_data[FS_CHAPTER_INPUTS] = []
             p_data['turn_count'] = 0
             for key in [SESSION_EOC_STATE, SESSION_EOC_QUESTIONS, SESSION_EOC_SUMMARY]:
@@ -114,7 +149,36 @@ def end_of_chapter():
             session[SESSION_EOC_QUESTIONS] = questions
             session[SESSION_EOC_STATE] = 'AWAIT_COMP_ANSWERS'
             return render_template('eoc/comprehension_check.html', questions=questions)
+        elif eoc_state == 'AWAIT_FINAL_REVIEW_ACK':
+            final_review_html = session.get(SESSION_EOC_SUMMARY, "<p>Your final review is not available at this moment.</p>")
+            return render_template('eoc/final_review.html', final_review_html=final_review_html)
         elif eoc_state == 'AWAIT_REPORT_ACK':
             summary = session.get(SESSION_EOC_SUMMARY, "Report summary is currently unavailable.")
             return render_template('eoc/report_summary.html', report_summary=summary)
         return redirect(url_for('game.game_view'))
+
+@bp.route('/new_journey', methods=['POST'])
+@login_required
+def start_new_journey():
+    """Resets the necessary character data to begin a new 12-stage journey."""
+    user_id = session[SESSION_USER_ID]
+    char_id = session.get(SESSION_CHARACTER_ID)
+    if not char_id:
+        flash("No character loaded.", "error")
+        return redirect(url_for('profile.profile'))
+
+    p_data = load_character_data(user_id, char_id)
+    if not p_data:
+        return redirect(url_for('profile.profile'))
+
+    # Reset the journey-specific data
+    p_data['report_summaries'] = []
+
+    # Clear all session data related to the end-of-chapter process
+    for key in [SESSION_EOC_STATE, SESSION_EOC_QUESTIONS, SESSION_EOC_SUMMARY]:
+        session.pop(key, None)
+
+    save_character_data(user_id, p_data)
+
+    flash("A new journey begins! Your previous accomplishments have been archived.", "success")
+    return redirect(url_for('game.game_view'))

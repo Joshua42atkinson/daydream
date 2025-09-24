@@ -21,12 +21,17 @@ firebase_app = None
 # These are loaded once when the module is imported.
 # In a larger app, these might be managed by a dedicated asset loading system.
 
-AWL_WORDS = {}
+# --- Application Data Loading ---
+# These are loaded once when the module is imported.
+# In a larger app, these might be managed by a dedicated asset loading system.
+
+# AWL_WORDS is now loaded directly in the vocabulary module.
+# We can import it after it has been initialized.
 try:
-    from .vocabulary import AWL_WORDS as imported_awl_words
-    AWL_WORDS = imported_awl_words
+    from .vocabulary import AWL_WORDS
 except (ImportError, FileNotFoundError, json.JSONDecodeError) as e:
     logging.warning(f"Could not load vocabulary data: {e}")
+    AWL_WORDS = {}
 
 QUEST_DATA = {}
 try:
@@ -149,6 +154,9 @@ def create_app(test_config=None):
 
     from .eoc import bp as eoc_bp
     app.register_blueprint(eoc_bp)
+
+    from .vocabulary import bp as vocab_bp
+    app.register_blueprint(vocab_bp, url_prefix='/vocabulary')
 
     # A simple root route to redirect
     @app.route('/')

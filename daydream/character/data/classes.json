@@ -1,0 +1,7 @@
+{
+    "Inventor": {"focus": "My First Gadget", "ability": "Tinker"},
+    "Archanist": {"focus": "Favorite Incantation", "ability": "Arcane Affinity"},
+    "Soldier": {"focus": "Weapon of Choice", "ability": "Combat Ready"},
+    "Counselor": {"focus": "Trusted Confidante", "ability": "Empathic"},
+    "Rascal": {"focus": "Useful Acquaintance", "ability": "Quick Wits"}
+}
