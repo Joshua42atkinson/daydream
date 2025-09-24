@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Vocabulary Manager{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="my-4">Vocabulary Manager</h1>
+
+    <!-- Vocabulary File Management -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <h2>Manage Vocabulary Sets</h2>
+        </div>
+        <div class="card-body">
+            <p>Upload new vocabulary sets in JSON format. The file should contain a single JSON object where keys are words and values are their difficulty level (e.g., 1-10).</p>
+            <form action="{{ url_for('vocabulary.upload_vocab') }}" method="post" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label for="vocab_file">Upload Vocabulary File</label>
+                    <input type="file" class="form-control-file" id="vocab_file" name="vocab_file" accept=".json" required>
+                </div>
+                <button type="submit" class="btn btn-primary">Upload</button>
+            </form>
+            <hr>
+            <h4>Current Vocabulary Sets</h4>
+            <ul>
+                {% for vocab_file in vocab_files %}
+                    <li>{{ vocab_file }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- AI Vocabulary Brainstorming -->
+    <div class="card">
+        <div class="card-header">
+            <h2>AI Vocabulary Brainstormer</h2>
+        </div>
+        <div class="card-body">
+            <p>Enter a subject or concept, and the AI will generate a list of relevant vocabulary words and definitions. You can then save this list as a new vocabulary set.</p>
+            <form action="{{ url_for('vocabulary.brainstorm_vocab') }}" method="post">
+                <div class="form-group">
+                    <label for="subject">Subject or Concept</label>
+                    <input type="text" class="form-control" id="subject" name="subject" required>
+                </div>
+                <button type="submit" class="btn btn-info">Brainstorm</button>
+            </form>
+
+            {% if brainstorm_results %}
+            <hr>
+            <h4>Brainstorming Results for "{{ subject }}"</h4>
+            <form action="{{ url_for('vocabulary.save_brainstormed_vocab') }}" method="post">
+                <input type="hidden" name="subject" value="{{ subject }}">
+                <div class="form-group">
+                    <label for="filename">Save as Filename</label>
+                    <input type="text" class="form-control" id="filename" name="filename" value="{{ subject|lower|replace(' ', '_') }}_vocab.json" required>
+                </div>
+                <div class="form-group">
+                    <label for="vocab_data">Generated Vocabulary (JSON format)</label>
+                    <textarea class="form-control" id="vocab_data" name="vocab_data" rows="15">{{ brainstorm_results | tojson(indent=4) }}</textarea>
+                </div>
+                <button type="submit" class="btn btn-success">Save as New Vocabulary Set</button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}Your Hero's Journey - A Final Review{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="card my-4">
+        <div class="card-header">
+            <h1>Your Hero's Journey: A Final Review</h1>
+            <p class="lead">This is a narrative summary of the 12 chapters you have completed, reflecting on your growth, challenges, and ultimate transformation.</p>
+        </div>
+        <div class="card-body">
+            <div class="report-content">
+                <!-- The final narrative from the AI will be rendered here -->
+                {{ final_review_html | safe }}
+            </div>
+        </div>
+        <div class="card-footer text-center">
+            <p>Congratulations on completing a full cycle of the Hero's Journey!</p>
+            <form action="{{ url_for('eoc.start_new_journey') }}" method="post">
+                <button type="submit" class="btn btn-primary btn-lg">Begin the Next Journey</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

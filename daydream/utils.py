@@ -7,7 +7,7 @@ import uuid
 from flask import session, flash, redirect, url_for, request
 from google.cloud.firestore_v1.base_query import FieldFilter
 from . import db, model, auth_client, firebase_app
-from .quests import get_quest, get_quest_step
+from .quests import get_quest, get_quest_step, HERO_JOURNEY_STAGES
 from .vocabulary import calculate_xp, AWL_WORDS, AWL_DEFINITIONS
 from .lore import thetopia_lore
 
@@ -27,23 +27,6 @@ ABILITY_NAME_MAP = {
     "combat ready": "Combat Ready", "empathic": "Empathic", "quick wits": "Quick Wits",
     "becoming awesome boost": "Becoming Awesome Boost", "law and order gain": "Law and Order Gain",
     "pointlessnesses reroll": "Pointlessnesses Reroll",
-}
-RACE_DATA = {
-    "Sasquatch": {"abilities": ["Natural Armor", "Cannot Wear Armor"], "fate_point_mod": 0},
-    "Leprechaun": {"abilities": ["Fortunate Find"], "fate_point_mod": 0},
-    "Android": {"abilities": ["Integrated Systems", "Memory Limit"], "fate_point_mod": -1},
-    "Opossuman": {"abilities": ["Pack Tactics", "Fierce Loyalty"], "fate_point_mod": 0},
-    "Tortisian": {"abilities": ["Artistic Shell", "Second Brain"], "fate_point_mod": 0},
-    "Slime": {"abilities": ["Absorb Magic", "Shapechange"], "fate_point_mod": 0},
-}
-CLASS_DATA = {
-    "Inventor": {"focus": "My First Gadget", "ability": "Tinker"}, "Archanist": {"focus": "Favorite Incantation", "ability": "Arcane Affinity"},
-    "Soldier": {"focus": "Weapon of Choice", "ability": "Combat Ready"}, "Counselor": {"focus": "Trusted Confidante", "ability": "Empathic"},
-    "Rascal": {"focus": "Useful Acquaintance", "ability": "Quick Wits"},
-}
-PHILOSOPHY_DATA = {
-    "Becoming Awesome": {"ability": "Becoming Awesome Boost"}, "Law and Order": {"ability": "Law and Order Gain"},
-    "Pointlessnesses": {"ability": "Pointlessnesses Reroll"},
 }
 HERO_JOURNEY_STAGES = [
     "The Ordinary World", "The Call to Adventure", "Refusal of the Call", "Meeting the Mentor", "Crossing the Threshold",

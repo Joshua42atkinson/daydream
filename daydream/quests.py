@@ -1,6 +1,90 @@
 # quests.py - Defines quest structures and content for Daydream
 # Version 4.4 - Corrected syntax error in __main__ test block.
 # ==============================================================================
+# ==============================================================================
+# Hero's Journey Framework
+# ==============================================================================
+# This structure defines the 12 stages of the Hero's Journey, providing a narrative
+# and psychological backbone for quest generation. Each stage includes a title,
+# a brief description of its psychological purpose, and keywords for the AI.
+
+HERO_JOURNEY_STAGES = [
+    {
+        "stage": 1,
+        "title": "The Ordinary World",
+        "description": "Introduces the hero in their normal life, establishing their identity, environment, and the status quo. It's a baseline from which they will grow.",
+        "keywords": ["normalcy", "routine", "home", "status quo", "unfulfilled"]
+    },
+    {
+        "stage": 2,
+        "title": "The Call to Adventure",
+        "description": "An event or discovery disrupts the hero's ordinary life and presents a challenge or quest. This is the catalyst for their journey.",
+        "keywords": ["disruption", "invitation", "challenge", "new information", "catalyst"]
+    },
+    {
+        "stage": 3,
+        "title": "Refusal of the Call",
+        "description": "The hero feels fear and hesitates to answer the call. This highlights the risks and stakes of the journey, making their eventual acceptance more meaningful.",
+        "keywords": ["fear", "hesitation", "doubt", "insecurity", "avoidance"]
+    },
+    {
+        "stage": 4,
+        "title": "Meeting the Mentor",
+        "description": "The hero encounters a mentor figure who provides guidance, training, or a special tool. This prepares them for the challenges ahead.",
+        "keywords": ["guidance", "wisdom", "training", "mentor", "supernatural aid"]
+    },
+    {
+        "stage": 5,
+        "title": "Crossing the Threshold",
+        "description": "The hero commits to the adventure and enters the special world of the story. This marks their true departure from the ordinary world.",
+        "keywords": ["commitment", "departure", "new world", "point of no return", "first test"]
+    },
+    {
+        "stage": 6,
+        "title": "Tests, Allies, and Enemies",
+        "description": "The hero faces a series of tests and challenges, learning the rules of the new world. They form alliances and identify their enemies.",
+        "keywords": ["challenges", "alliances", "enemies", "learning", "adaptation"]
+    },
+    {
+        "stage": 7,
+        "title": "Approach to the Inmost Cave",
+        "description": "The hero and their allies prepare for the major challenge in the special world. This often involves planning and facing their greatest fears.",
+        "keywords": ["preparation", "planning", "greatest fear", "confrontation", "the ordeal"]
+    },
+    {
+        "stage": 8,
+        "title": "The Ordeal",
+        "description": "The central crisis of the story, where the hero faces their greatest fear or a life-and-death moment. This is the 'dark night of the soul.'",
+        "keywords": ["crisis", "death and rebirth", "greatest challenge", "rock bottom", "transformation"]
+    },
+    {
+        "stage": 9,
+        "title": "Reward (Seizing the Sword)",
+        "description": "Having survived the ordeal, the hero gains a reward, such as an object of great importance, new knowledge, or reconciliation.",
+        "keywords": ["reward", "knowledge", "power", "reconciliation", "treasure"]
+    },
+    {
+        "stage": 10,
+        "title": "The Road Back",
+        "description": "The hero begins their journey back to the ordinary world, but the consequences of the ordeal and reward may still be unfolding.",
+        "keywords": ["return", "consequences", "chase", "escape", "resurrection"]
+    },
+    {
+        "stage": 11,
+        "title": "The Resurrection",
+        "description": "The hero faces a final, climactic test on their return journey. This test purifies, redeems, and transforms them into a new being.",
+        "keywords": ["climax", "final test", "purification", "redemption", "new self"]
+    },
+    {
+        "stage": 12,
+        "title": "Return with the Elixir",
+        "description": "The hero returns to their ordinary world with the reward or knowledge they have gained, which they can now use to benefit their community.",
+        "keywords": ["homecoming", "sharing knowledge", "benefit to community", "master of two worlds", "resolution"]
+    }
+]
+
+
+# ==============================================================================
 # Quest Data Structure Explanation (Enhanced)
 # ==============================================================================
 # QUEST_DATA = {
