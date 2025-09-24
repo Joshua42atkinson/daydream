@@ -158,6 +158,9 @@ def create_app(test_config=None):
     from .vocabulary import bp as vocab_bp
     app.register_blueprint(vocab_bp, url_prefix='/vocabulary')
 
+    from .api import bp as api_bp
+    app.register_blueprint(api_bp, url_prefix='/api')
+
     # A simple root route to redirect
     @app.route('/')
     def index():
