@@ -7,6 +7,7 @@ firebase-admin>=6.0.0
 google-cloud-firestore>=2.11.0
 google-generativeai>=0.3.0 # For Gemini API
 google-auth>=2.17.3 # Often implicitly required
+requests>=2.28.0
 
 # Add any other direct dependencies from your other Python files (e.g., vocabulary.py if it uses specific libraries)
 # Example: numpy, pandas (if used elsewhere)

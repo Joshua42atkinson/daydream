@@ -28,6 +28,7 @@ daydream/profile/routes.py
 daydream/vocabulary/__init__.py
 daydream/vocabulary/core.py
 daydream/vocabulary/routes.py
+tests/conftest.py
 tests/test_auth.py
 tests/test_character.py
 tests/test_factory.py
