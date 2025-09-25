@@ -6,6 +6,7 @@ from functools import wraps
 import uuid
 
 from flask import Flask, session, redirect, url_for
+from dotenv import load_dotenv
 import firebase_admin
 from firebase_admin import credentials, firestore
 from firebase_admin import auth as firebase_auth
@@ -63,6 +64,9 @@ except (FileNotFoundError, json.JSONDecodeError) as e:
 
 def create_app(test_config=None):
     """Create and configure an instance of the Flask application."""
+    # Load environment variables from .env file
+    load_dotenv()
+
     app = Flask(__name__, instance_relative_config=True)
 
     # --- Configuration ---

@@ -46,7 +46,8 @@ def signup():
                 'email': email, 'player_level': 1, 'total_player_xp': 0,
                 'created_at': db.SERVER_TIMESTAMP, 'has_premium': False,
                 'vocab_settings': {'use_default_awl': True},
-                FS_PLAYER_HAS_SEEN_INTRO: False
+                FS_PLAYER_HAS_SEEN_INTRO: False,
+                'role': 'student' # Default role for new signups
             }
             db.collection('player_profiles').document(user.uid).set(profile_data)
             logging.info(f"Firestore player profile created for {user.uid}")

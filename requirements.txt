@@ -10,3 +10,9 @@ google-auth>=2.17.3 # Often implicitly required
 
 # Add any other direct dependencies from your other Python files (e.g., vocabulary.py if it uses specific libraries)
 # Example: numpy, pandas (if used elsewhere)
+
+# For loading .env files
+python-dotenv>=1.0.0
+
+# For testing
+pytest-mock>=3.12.0
