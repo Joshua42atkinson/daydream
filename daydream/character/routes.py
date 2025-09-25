@@ -6,7 +6,7 @@ import os
 import json
 import logging
 from ..utils import (
-    login_required, get_ai_response, save_character_data,
+    login_required, instructor_required, get_ai_response, save_character_data,
     SESSION_USER_ID, SESSION_NEW_CHAR_DETAILS, SESSION_AI_RECOMMENDATIONS,
     STARTING_LOCATION, BASE_FATE_POINTS, FS_CONVERSATION, FS_CHAPTER_INPUTS,
     FS_QUEST_FLAGS, FS_INVENTORY, SESSION_EOC_PROMPTED
@@ -131,6 +131,7 @@ DATA_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
 
 @bp.route('/templates')
 @login_required
+@instructor_required
 def template_manager():
     """Renders the character template management page."""
     os.makedirs(DATA_PATH, exist_ok=True)
@@ -152,6 +153,7 @@ def template_manager():
 
 @bp.route('/templates/upload/<string:template_type>', methods=['POST'])
 @login_required
+@instructor_required
 def upload_template(template_type):
     """Handles uploading of new character template JSON files."""
     if template_type not in ['races', 'classes', 'philosophies']:
