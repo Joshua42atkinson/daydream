@@ -15,6 +15,24 @@
      {% if profile %}
         <p><strong>Email:</strong> {{ profile.email }}</p>
         <p><strong>Premium Status:</strong> {{ "Active" if profile.has_premium else "Inactive" }}</p>
+        {% if organization_name %}
+            <p><strong>Organization:</strong> {{ organization_name }}</p>
+            {% if profile.role == 'instructor' %}
+                <a href="{{ url_for('organization.dashboard') }}" class="button button-small">Manage Organization</a>
+            {% endif %}
+        {% elif not organization_name %}
+            <form method="POST" action="{{ url_for('organization.join_organization') }}" class="mt-3">
+                <div class="form-group">
+                    <label for="invite_code">Have an invite code?</label>
+                    <input type="text" class="form-control" id="invite_code" name="invite_code" placeholder="Enter code">
+                </div>
+                <button type="submit" class="btn btn-secondary">Join Organization</button>
+            </form>
+            {% if profile.role == 'instructor' %}
+                <p class="mt-3">Or</p>
+                <a href="{{ url_for('organization.create_organization') }}" class="button">Create Organization</a>
+            {% endif %}
+        {% endif %}
     {% else %}
         <p>Could not load profile information.</p>
     {% endif %}
@@ -63,7 +81,7 @@
 
         {# Pre-made Character Selection Form #}
          {% if premade_characters %}
-            <form method="POST" action="{{ url_for('profile') }}" style="margin-top: 15px;">
+            <form method="POST" action="{{ url_for('profile.profile') }}" style="margin-top: 15px;">
                  <h4>Or Select a Pre-made Character:</h4>
                  <input type="hidden" name="action" value="load_premade">
                  <div class="form-group">

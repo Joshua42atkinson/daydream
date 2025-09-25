@@ -6,26 +6,27 @@ import os
 import json
 import logging
 from ..utils import (
-    login_required, get_ai_response, save_character_data,
+    login_required, instructor_required, get_ai_response, save_character_data,
     SESSION_USER_ID, SESSION_NEW_CHAR_DETAILS, SESSION_AI_RECOMMENDATIONS,
     STARTING_LOCATION, BASE_FATE_POINTS, FS_CONVERSATION, FS_CHAPTER_INPUTS,
     FS_QUEST_FLAGS, FS_INVENTORY, SESSION_EOC_PROMPTED
 )
 
-def load_character_template_data(filename):
-    """Loads character template data from a JSON file."""
+def load_character_template_data(org_id, template_type):
+    """Loads character template data from a JSON file for a specific organization."""
+    if not org_id:
+        org_id = 'default'
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    file_path = os.path.join(base_dir, 'data', filename)
+    file_path = os.path.join(base_dir, 'data', org_id, f'{template_type}.json')
     try:
         with open(file_path, 'r', encoding='utf-8') as f:
             return json.load(f)
     except (FileNotFoundError, json.JSONDecodeError) as e:
+        # Fallback to default if org-specific file is missing
+        if org_id != 'default':
+            return load_character_template_data('default', template_type)
         logging.error(f"Could not load character template data from {file_path}: {e}")
         return {}
-
-RACE_DATA = load_character_template_data('races.json')
-CLASS_DATA = load_character_template_data('classes.json')
-PHILOSOPHY_DATA = load_character_template_data('philosophies.json')
 from .. import db
 from ..quests import get_quest, get_quest_step
 
@@ -33,6 +34,13 @@ from ..quests import get_quest, get_quest_step
 @login_required
 def character_creation_view():
     user_id = session[SESSION_USER_ID]
+    user_profile = db.collection('player_profiles').document(user_id).get()
+    org_id = user_profile.to_dict().get('organization_id') if user_profile.exists else None
+
+    RACE_DATA = load_character_template_data(org_id, 'races')
+    CLASS_DATA = load_character_template_data(org_id, 'classes')
+    PHILOSOPHY_DATA = load_character_template_data(org_id, 'philosophies')
+
     if request.method == 'POST':
         creation_stage = request.form.get('creation_stage')
         if creation_stage == 'submit_details':
@@ -131,17 +139,27 @@ DATA_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
 
 @bp.route('/templates')
 @login_required
+@instructor_required
 def template_manager():
     """Renders the character template management page."""
-    os.makedirs(DATA_PATH, exist_ok=True)
+    user_id = session[SESSION_USER_ID]
+    user_profile = db.collection('player_profiles').document(user_id).get()
+    org_id = user_profile.to_dict().get('organization_id') if user_profile.exists else None
+
+    if not org_id:
+        flash("You must create or join an organization to manage templates.", "warning")
+        return redirect(url_for('organization.create_organization'))
+
+    org_data_path = os.path.join(DATA_PATH, org_id)
+    os.makedirs(org_data_path, exist_ok=True)
 
     try:
-        all_files = os.listdir(DATA_PATH)
+        all_files = os.listdir(org_data_path)
         race_files = [f for f in all_files if f.startswith('races') and f.endswith('.json')]
         class_files = [f for f in all_files if f.startswith('classes') and f.endswith('.json')]
         philosophy_files = [f for f in all_files if f.startswith('philosophies') and f.endswith('.json')]
     except OSError as e:
-        logging.error(f"Error accessing character template directory {DATA_PATH}: {e}")
+        logging.error(f"Error accessing character template directory {org_data_path}: {e}")
         flash("Could not access character template directory.", "error")
         race_files, class_files, philosophy_files = [], [], []
 
@@ -152,8 +170,17 @@ def template_manager():
 
 @bp.route('/templates/upload/<string:template_type>', methods=['POST'])
 @login_required
+@instructor_required
 def upload_template(template_type):
     """Handles uploading of new character template JSON files."""
+    user_id = session[SESSION_USER_ID]
+    user_profile = db.collection('player_profiles').document(user_id).get()
+    org_id = user_profile.to_dict().get('organization_id') if user_profile.exists else None
+
+    if not org_id:
+        flash("You must be in an organization to upload templates.", "warning")
+        return redirect(url_for('character.template_manager'))
+
     if template_type not in ['races', 'classes', 'philosophies']:
         flash("Invalid template type specified.", "error")
         return redirect(url_for('character.template_manager'))
@@ -169,9 +196,9 @@ def upload_template(template_type):
 
     if file and file.filename.endswith('.json'):
         filename = secure_filename(file.filename)
-        # To prevent overwriting the default, we might want to rename if it matches.
-        # For now, we'll allow it.
-        save_path = os.path.join(DATA_PATH, filename)
+        org_data_path = os.path.join(DATA_PATH, org_id)
+        os.makedirs(org_data_path, exist_ok=True)
+        save_path = os.path.join(org_data_path, filename)
 
         try:
             # Validate JSON content

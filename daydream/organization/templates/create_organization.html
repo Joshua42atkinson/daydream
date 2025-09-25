@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+
+{% block title %}Create Organization{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="my-4">Create a New Organization</h1>
+    <p>As an instructor, you can create an organization to manage your students and content.</p>
+
+    <form method="POST" action="{{ url_for('organization.create_organization') }}">
+        <div class="form-group">
+            <label for="name">Organization Name</label>
+            <input type="text" class="form-control" id="name" name="name" required>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Create Organization</button>
+    </form>
+</div>
+{% endblock %}

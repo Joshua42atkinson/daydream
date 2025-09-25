@@ -127,6 +127,27 @@ def login_required(f):
         return f(*args, **kwargs)
     return decorated_function
 
+def instructor_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        user_id = session.get(SESSION_USER_ID)
+        if not user_id:
+            flash("You must be logged in to access this page.", "warning")
+            return redirect(url_for('auth.login', next=request.url))
+
+        try:
+            user_profile = db.collection('player_profiles').document(user_id).get()
+            if user_profile.exists and user_profile.to_dict().get('role') == 'instructor':
+                return f(*args, **kwargs)
+            else:
+                flash("You do not have permission to access this page.", "danger")
+                return redirect(url_for('profile.profile'))
+        except Exception as e:
+            logging.error(f"Error checking instructor role for user {user_id}: {e}")
+            flash("An error occurred while verifying your permissions.", "danger")
+            return redirect(url_for('profile.profile'))
+    return decorated_function
+
 def check_step_completion(p_data: dict, step_data: dict) -> tuple[bool, str | None]:
     # ... (full implementation from original app.py)
     return False, None

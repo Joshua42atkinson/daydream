@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Invite User{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="my-4">Invite a New User</h1>
+    <p>Generate an invite code to share with new users.</p>
+
+    <form method="POST" action="{{ url_for('organization.invite') }}">
+        <div class="form-group">
+            <label for="role">Role for new user</label>
+            <select class="form-control" id="role" name="role">
+                <option value="student">Student</option>
+                <option value="instructor">Instructor</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Generate Invite Code</button>
+    </form>
+</div>
+{% endblock %}
