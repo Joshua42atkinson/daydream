@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Daydream - Main Menu</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 600px;
+        }
+        h1 {
+            color: #4a4a4a;
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+        .tool-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .tool-item {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            padding: 1rem;
+            transition: box-shadow 0.2s;
+        }
+        .tool-item:hover {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+        }
+        .tool-item a {
+            text-decoration: none;
+            color: #007bff;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+        .tool-item p {
+            margin: 0.5rem 0 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Main Menu</h1>
+        {% if tools %}
+            <ul class="tool-list">
+                {% for tool in tools %}
+                    <li class="tool-item">
+                        <a href="{{ url_for('tool_handlers.handle_tool', tool_id=tool.id) }}">{{ tool.id | replace('.', ' ') | title }}</a>
+                        <p>{{ tool.description }}</p>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <p>No tools are available in the current state.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

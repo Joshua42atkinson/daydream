@@ -1,19 +1,14 @@
-# Python
+# Environment variables
+.env
+
+# Dummy/sensitive files
+dummy_firebase_key.json
+
+# Python cache
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
 
-# Environment
-.env
-venv/
-env/
-
-# IDE
-.idea/
-.vscode/
-
-# Other
-*.egg-info/
-flake8-report/
-.pytest_cache/
+# Build artifacts
+/dist
+/build
+*.egg-info
