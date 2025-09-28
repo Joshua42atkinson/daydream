@@ -5,18 +5,21 @@ import re
 from functools import wraps
 import uuid
 
-from flask import Flask, session, redirect, url_for
+from flask import Flask, session, redirect, url_for, g, request
 from dotenv import load_dotenv
 import firebase_admin
 from firebase_admin import credentials, firestore
 from firebase_admin import auth as firebase_auth
 import google.generativeai as genai
 
+from .state_manager import StateManager
+
 # Define globals that will be initialized in create_app
 db = None
 model = None
 auth_client = None
 firebase_app = None
+state_manager = None
 
 # --- Application Data Loading ---
 # These are loaded once when the module is imported.
@@ -100,9 +103,42 @@ def create_app(test_config=None):
     logging.info("Flask application created.")
 
     # Use 'global' to modify the global variables defined outside the function
-    global db, model, auth_client, firebase_app
+    global db, model, auth_client, firebase_app, state_manager
 
-    if not app.config.get('TESTING'):
+    # --- Initialize State Manager ---
+    # The StateManager is a singleton, so this will either create a new
+    # instance or return the existing one.
+    state_manager = StateManager()
+
+    @app.before_request
+    def manage_app_state():
+        """
+        Manages the application state for each request.
+        - Makes the state manager available in the request context `g`.
+        - Ensures a logged-in user has a state, defaulting to the entry point.
+        """
+        # Make the state manager accessible for the duration of the request.
+        g.state_manager = state_manager
+
+        # Skip state management for static files and authentication routes
+        # to prevent errors or redirection loops.
+        # The 'auth' blueprint handles login/logout and should not be state-dependent.
+        if request.path.startswith('/static/') or (hasattr(request, 'blueprint') and request.blueprint == 'auth'):
+            return
+
+        # If a user is logged in but has no application state in their session,
+        # set it to the default entry point. This happens on the first request
+        # after logging in.
+        if 'user_id' in session and 'app_state' not in session:
+            state_manager.set_state(state_manager.entry_point)
+            logging.info(f"Initialized state for user {session['user_id']} to '{session['app_state']}'")
+
+
+    # Conditionally initialize external services.
+    # This can be bypassed for local UI/state testing by setting the env var.
+    BYPASS_EXTERNAL_SERVICES = os.environ.get('BYPASS_EXTERNAL_SERVICES', 'False').lower() in ['true', '1', 't']
+
+    if not app.config.get('TESTING') and not BYPASS_EXTERNAL_SERVICES:
         # --- Firebase Initialization ---
         try:
             SERVICE_ACCOUNT_KEY_PATH = os.environ.get("FIREBASE_SERVICE_ACCOUNT_KEY")
@@ -165,11 +201,29 @@ def create_app(test_config=None):
     from .api import bp as api_bp
     app.register_blueprint(api_bp, url_prefix='/api')
 
+    from .main_menu import bp as main_menu_bp
+    app.register_blueprint(main_menu_bp)
+
+    from .tool_handlers import bp as tool_handlers_bp
+    app.register_blueprint(tool_handlers_bp)
+
+    from .creator_cockpit import bp as creator_cockpit_bp
+    app.register_blueprint(creator_cockpit_bp)
+
+    from .settings import bp as settings_bp
+    app.register_blueprint(settings_bp)
+
+    from .system_diagnostics import bp as system_diagnostics_bp
+    app.register_blueprint(system_diagnostics_bp)
+
     # A simple root route to redirect
     @app.route('/')
     def index():
         if 'user_id' in session:
-            return redirect(url_for('profile.profile'))
+            # If the user is logged in, redirect to the main menu,
+            # which will then be handled by the state manager.
+            return redirect(url_for('main_menu.menu'))
+        # If not logged in, send to the login page.
         return redirect(url_for('auth.login'))
 
     return app

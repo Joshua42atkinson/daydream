@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Creator Cockpit</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #f4f4f9;
+            color: #333;
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+        .container {
+            background: white;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+        h1 {
+            color: #4a4a4a;
+        }
+        p {
+            color: #666;
+        }
+        .tool-list {
+            list-style: none;
+            padding: 0;
+            margin-top: 2rem;
+            text-align: left;
+        }
+        .tool-item {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            margin-bottom: 1rem;
+            padding: 1rem;
+        }
+        .tool-item a {
+            text-decoration: none;
+            color: #007bff;
+            font-weight: bold;
+        }
+        .tool-item p {
+            margin: 0.5rem 0 0;
+            font-size: 0.9rem;
+        }
+        .back-link {
+            display: inline-block;
+            margin-top: 2rem;
+            color: #007bff;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Creator Cockpit</h1>
+        <p>You have successfully transitioned to the <strong>CreatorCockpit</strong> state.</p>
+        <p>This is a placeholder page.</p>
+
+        {% if tools %}
+            <ul class="tool-list">
+                {% for tool in tools %}
+                    <li class="tool-item">
+                        <a href="#">{{ tool.id | replace('.', ' ') | title }}</a>
+                        <p>{{ tool.description }}</p>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        {# The 'project.close_module' tool should lead back to the main menu #}
+        <a href="{{ url_for('tool_handlers.handle_tool', tool_id='project.close_module') }}" class="back-link">Close Module & Return to Main Menu</a>
+    </div>
+</body>
+</html>
