@@ -15,10 +15,8 @@ import google.generativeai as genai
 from .state_manager import StateManager
 
 # Define globals that will be initialized in create_app
-db = None
-model = None
-auth_client = None
-firebase_app = None
+# Refactor: We will move service objects (db, model, etc.) into the app config
+# to avoid globals and potential circular imports.
 state_manager = None
 
 # --- Application Data Loading ---
@@ -103,7 +101,7 @@ def create_app(test_config=None):
     logging.info("Flask application created.")
 
     # Use 'global' to modify the global variables defined outside the function
-    global db, model, auth_client, firebase_app, state_manager
+    global state_manager
 
     # --- Initialize State Manager ---
     # The StateManager is a singleton, so this will either create a new
@@ -137,44 +135,55 @@ def create_app(test_config=None):
     # Conditionally initialize external services.
     # This can be bypassed for local UI/state testing by setting the env var.
     BYPASS_EXTERNAL_SERVICES = os.environ.get('BYPASS_EXTERNAL_SERVICES', 'False').lower() in ['true', '1', 't']
+    app.config['BYPASS_EXTERNAL_SERVICES'] = BYPASS_EXTERNAL_SERVICES
+
+    # Initialize service placeholders in config
+    app.config['FIREBASE_APP'] = None
+    app.config['DB'] = None
+    app.config['AUTH_CLIENT'] = None
+    app.config['MODEL'] = None
 
     if not app.config.get('TESTING') and not BYPASS_EXTERNAL_SERVICES:
         # --- Firebase Initialization ---
         try:
             SERVICE_ACCOUNT_KEY_PATH = os.environ.get("FIREBASE_SERVICE_ACCOUNT_KEY")
             if not SERVICE_ACCOUNT_KEY_PATH:
-                logging.critical("FATAL: FIREBASE_SERVICE_ACCOUNT_KEY environment variable not set.")
-                exit(1)
+                raise ValueError("FIREBASE_SERVICE_ACCOUNT_KEY environment variable not set.")
             if not os.path.exists(SERVICE_ACCOUNT_KEY_PATH):
-                logging.critical(f"Firebase key file not found at path: {os.path.abspath(SERVICE_ACCOUNT_KEY_PATH)}")
-                exit(1)
+                 raise FileNotFoundError(f"Firebase key file not found at path: {os.path.abspath(SERVICE_ACCOUNT_KEY_PATH)}")
 
             cred = credentials.Certificate(SERVICE_ACCOUNT_KEY_PATH)
+            firebase_app_instance = None
             try:
-                firebase_app = firebase_admin.get_app(name=app.config['FIREBASE_APP_NAME'])
+                firebase_app_instance = firebase_admin.get_app(name=app.config['FIREBASE_APP_NAME'])
             except ValueError:
-                firebase_app = firebase_admin.initialize_app(cred, name=app.config['FIREBASE_APP_NAME'])
+                firebase_app_instance = firebase_admin.initialize_app(cred, name=app.config['FIREBASE_APP_NAME'])
 
-            db = firestore.client(app=firebase_app)
-            auth_client = firebase_auth.Client(app=firebase_app)
+            # Store service objects in the app config
+            app.config['FIREBASE_APP'] = firebase_app_instance
+            app.config['DB'] = firestore.client(app=firebase_app_instance)
+            app.config['AUTH_CLIENT'] = firebase_auth.Client(app=firebase_app_instance)
             logging.info("Firebase Admin SDK initialized.")
+
         except Exception as e:
             logging.critical(f"FATAL ERROR: Could not initialize Firebase: {e}")
-            exit(1)
+            # We don't exit here anymore, the diagnostics will show the error.
+            # exit(1) # This would stop the app from running, which we don't want.
 
         # --- Google AI (Gemini) Initialization ---
         try:
             GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
             if not GEMINI_API_KEY or GEMINI_API_KEY == "PASTE_YOUR_NEW_API_KEY_HERE":
-                logging.critical("FATAL: GEMINI_API_KEY environment variable not set or is still the placeholder.")
-                exit(1)
+                raise ValueError("GEMINI_API_KEY environment variable not set or is still the placeholder.")
 
             genai.configure(api_key=GEMINI_API_KEY)
-            model = genai.GenerativeModel("gemini-1.5-flash-latest")
+            # Store the model in the app config
+            app.config['MODEL'] = genai.GenerativeModel("gemini-1.5-flash-latest")
             logging.info("Google AI Model 'gemini-1.5-flash-latest' initialized.")
         except Exception as e:
             logging.critical(f"FATAL ERROR: Could not initialize Google AI: {e}")
-            exit(1)
+            # We don't exit here anymore, the diagnostics will show the error.
+            # exit(1)
 
     # --- Register Blueprints ---
     from .auth import bp as auth_bp

@@ -6,79 +6,190 @@
     <title>System Diagnostics</title>
     <style>
         body {
-            font-family: sans-serif;
-            background-color: #f4f4f9;
-            color: #333;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
             margin: 0;
             padding: 2rem;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
         }
         .container {
-            background: white;
+            background: #2b2b2b;
             padding: 2rem;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
             width: 100%;
-            max-width: 600px;
-            text-align: center;
+            max-width: 800px;
+            margin: auto;
+        }
+        h1, h2 {
+            color: #ffffff;
+            border-bottom: 2px solid #444;
+            padding-bottom: 0.5rem;
+            margin-top: 2rem;
         }
         h1 {
-            color: #4a4a4a;
+            text-align: center;
+            margin-top: 0;
         }
-        p {
-            color: #666;
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
         }
-        .tool-list {
-            list-style: none;
-            padding: 0;
-            margin-top: 2rem;
+        th, td {
+            padding: 0.75rem 1rem;
             text-align: left;
+            border-bottom: 1px solid #444;
         }
-        .tool-item {
-            background-color: #f9f9f9;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-            margin-bottom: 1rem;
-            padding: 1rem;
+        th {
+            background-color: #333;
         }
-        .tool-item a {
-            text-decoration: none;
-            color: #007bff;
+        .status-badge {
+            display: inline-block;
+            padding: 0.3em 0.6em;
+            font-size: 0.85em;
             font-weight: bold;
+            border-radius: 15px;
+            color: #fff;
+            text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
         }
-        .tool-item p {
-            margin: 0.5rem 0 0;
-            font-size: 0.9rem;
+        .status-ok { background-color: #28a745; }
+        .status-bypassed { background-color: #ffc107; color: #333; }
+        .status-error { background-color: #dc3545; }
+        .status-aligned { background-color: #17a2b8; }
+        .status-misaligned { background-color: #fd7e14; }
+        .details {
+            font-size: 0.9em;
+            color: #aaa;
+            display: block;
+            margin-top: 0.25em;
         }
         .back-link {
             display: inline-block;
-            margin-top: 2rem;
-            color: #007bff;
+            margin-top: 2.5rem;
+            color: #00aaff;
             text-decoration: none;
+            font-weight: bold;
+            padding: 0.75rem 1.5rem;
+            border: 1px solid #00aaff;
+            border-radius: 8px;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        .back-link:hover {
+            background-color: #00aaff;
+            color: #fff;
+        }
+        .center {
+            text-align: center;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>System Diagnostics</h1>
-        <p>You have successfully transitioned to the <strong>SystemDiagnostics</strong> state.</p>
-        <p>This is a placeholder page.</p>
 
-        {% if tools %}
-            <ul class="tool-list">
-                {% for tool in tools %}
-                    <li class="tool-item">
-                        <a href="#">{{ tool.id | replace('.', ' ') | title }}</a>
-                        <p>{{ tool.description }}</p>
-                    </li>
+        {% if diagnostics %}
+            <!-- Section: Application Status -->
+            <h2>Application Status</h2>
+            <table>
+                <tr>
+                    <th>Parameter</th>
+                    <th>Status</th>
+                </tr>
+                <tr>
+                    <td>Application Mode</td>
+                    <td>{{ diagnostics.app_mode }}</td>
+                </tr>
+            </table>
+
+            <!-- Section: External Services -->
+            <h2>External Services</h2>
+            <table>
+                <tr>
+                    <th>Service</th>
+                    <th>Status</th>
+                    <th>Details</th>
+                </tr>
+                {% set services = diagnostics.services %}
+                <tr>
+                    <td>Firebase</td>
+                    <td>
+                        <span class="status-badge
+                            {% if services.firebase.status == 'Connected' %}status-ok
+                            {% elif services.firebase.status == 'Bypassed' %}status-bypassed
+                            {% else %}status-error{% endif %}">
+                            {{ services.firebase.status }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if services.firebase.project_id %}
+                            Project ID: {{ services.firebase.project_id }}
+                        {% elif services.firebase.reason %}
+                            <span class="details">{{ services.firebase.reason }}</span>
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                </tr>
+                <tr>
+                    <td>Google AI</td>
+                    <td>
+                        <span class="status-badge
+                            {% if services.google_ai.status == 'Connected' %}status-ok
+                            {% elif services.google_ai.status == 'Bypassed' %}status-bypassed
+                            {% else %}status-error{% endif %}">
+                            {{ services.google_ai.status }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if services.google_ai.model %}
+                            Model: {{ services.google_ai.model }}
+                        {% elif services.google_ai.reason %}
+                             <span class="details">{{ services.google_ai.reason }}</span>
+                        {% else %}
+                            N/A
+                        {% endif %}
+                    </td>
+                </tr>
+            </table>
+            {% if services.bypassed %}
+            <p class="details" style="text-align: center; margin-top: 1rem;">
+                Note: External services are currently bypassed via environment settings.
+            </p>
+            {% endif %}
+
+            <!-- Section: Architecture Vision Alignment -->
+            <h2>Architecture Vision Alignment</h2>
+            <p class="details" style="text-align: center;">
+                Comparison of the current prototype with the long-term project goals defined in README.md.
+            </p>
+            <table>
+                <tr>
+                    <th>Component</th>
+                    <th>Current Implementation</th>
+                    <th>Target Vision</th>
+                    <th>Status</th>
+                </tr>
+                {% for item in diagnostics.vision_alignment %}
+                <tr>
+                    <td>{{ item.component }}</td>
+                    <td>{{ item.current }}</td>
+                    <td>{{ item.vision }}</td>
+                    <td>
+                        <span class="status-badge {{ 'status-aligned' if item.aligned else 'status-misaligned' }}">
+                            {{ 'Aligned' if item.aligned else 'Prototype' }}
+                        </span>
+                    </td>
+                </tr>
                 {% endfor %}
-            </ul>
+            </table>
+        {% else %}
+            <p>No diagnostic data available.</p>
         {% endif %}
 
-        <a href="{{ url_for('tool_handlers.handle_tool', tool_id='system.return_to_main_menu') }}" class="back-link">Return to Main Menu</a>
+        <div class="center">
+            <a href="{{ url_for('tool_handlers.handle_tool', tool_id='system.return_to_main_menu') }}" class="back-link">Return to Main Menu</a>
+        </div>
     </div>
 </body>
 </html>
