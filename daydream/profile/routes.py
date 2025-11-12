@@ -14,8 +14,9 @@ from ..utils import (
     BASE_FATE_POINTS
 )
 from ..character.routes import RACE_DATA, CLASS_DATA, PHILOSOPHY_DATA
-from .. import db, premade_character_templates
+from .. import premade_character_templates
 from ..quests import get_quest, get_quest_step
+from flask import current_app
 
 @bp.route('/', methods=['GET','POST'])
 @login_required
@@ -44,7 +45,8 @@ def profile():
 
     # --- GET Request Handling ---
     profile_data = {'email': user_email, 'player_level': 1, 'total_player_xp': 0, 'has_premium': False, 'vocab_settings': {'use_default_awl': True, 'awl_color_bg': '#FFE6EB', 'ai_color_bg': '#E1F0FF'}}
-    if db:
+    db = current_app.config.get('DB')
+    if db and not current_app.config.get('BYPASS_EXTERNAL_SERVICES'):
         try:
             profile_doc_ref = db.collection('player_profiles').document(user_id)
             p_doc = profile_doc_ref.get(['player_level', 'total_player_xp', 'has_premium', 'email', 'vocab_settings'])
@@ -84,8 +86,14 @@ def delete_vocab_list(list_id):
 def grant_instructor_role():
     """A temporary route to grant instructor role to the current user."""
     user_id = session.get(SESSION_USER_ID)
+    db = current_app.config.get('DB')
+
     if not user_id:
         flash("User not found in session.", "error")
+        return redirect(url_for('profile.profile'))
+
+    if current_app.config.get('BYPASS_EXTERNAL_SERVICES') or not db:
+        flash("Cannot grant roles in Bypass Mode.", "warning")
         return redirect(url_for('profile.profile'))
 
     try:

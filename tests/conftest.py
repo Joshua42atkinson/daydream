@@ -5,15 +5,25 @@ from daydream import create_app
 def app(mocker):
     """Create and configure a new app instance for each test."""
 
-    # Mock the external clients before the app is created
-    mocker.patch('daydream.db', return_value=mocker.MagicMock())
-    mocker.patch('daydream.auth_client', return_value=mocker.MagicMock())
-    mocker.patch('daydream.model', return_value=mocker.MagicMock())
-
+    # Since we've refactored to use the app context, we don't need to patch
+    # the module-level variables. Instead, we can let the app be created
+    # and then mock the config values.
     app = create_app({
         'TESTING': True,
         'SECRET_KEY': 'test',
+        'BYPASS_EXTERNAL_SERVICES': True, # Ensure services are bypassed
     })
+    app.config['SERVER_NAME'] = 'localhost'
+    app.config['APPLICATION_ROOT'] = '/'
+
+    # You can still mock if needed, for example, if a function specifically
+    # needs to interact with a mock object.
+    with app.app_context():
+        mocker.patch.dict(app.config, {
+            'DB': mocker.MagicMock(),
+            'AUTH_CLIENT': mocker.MagicMock(),
+            'MODEL': mocker.MagicMock()
+        })
 
     yield app
 

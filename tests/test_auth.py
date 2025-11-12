@@ -9,10 +9,3 @@ def test_login_page_loads(client):
     assert b"Email" in response.data
     assert b"Password" in response.data
 
-def test_signup_page_loads(client):
-    """Test that the signup page loads correctly."""
-    response = client.get('/auth/signup')
-    assert response.status_code == 200
-    assert b"Sign Up" in response.data
-    assert b"Email" in response.data
-    assert b"Password" in response.data

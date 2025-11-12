@@ -79,6 +79,7 @@ def create_app(test_config=None):
         MAX_CONVO_LINES=100,
         STARTING_LOCATION="Thetopia - Town Square",
         BASE_FATE_POINTS=1,
+        APPLICATION_ROOT='/'
     )
 
     if test_config is None:
