@@ -7,7 +7,7 @@ from ..utils import (
     FS_CHAPTER_INPUTS, HERO_JOURNEY_STAGES, SESSION_EOC_QUESTIONS,
     SESSION_EOC_SUMMARY
 )
-from .. import db
+from flask import current_app
 
 @bp.route('/', methods=['GET', 'POST'])
 @login_required
@@ -54,18 +54,20 @@ def end_of_chapter():
             xp_gained = (5 + {'S':1, 'M':3, 'L':5}.get(anal_res.get('avg_length_category'), 0) + len(anal_res.get('awl_words_used', [])) * 2 + int(anal_res.get('relevance_coherence_score', 0)) + {'L':1, 'M':3, 'H':5}.get(anal_res.get('style_rating'), 0) + {'L':1, 'M':3, 'H':5}.get(anal_res.get('thinking_rating'), 0) + {'L':1, 'M':3, 'H':5}.get(anal_res.get('descriptive_language_rating'), 0) + max(0, int(comp_score) - 5))
             xp_gained = max(0, xp_gained)
             flash(f"Chapter Complete! You earned {xp_gained} Player XP!", "success")
-            try:
-                profile_ref = db.collection('player_profiles').document(user_id)
-                profile_ref.update({'total_player_xp': db.firestore.Increment(xp_gained)})
-                profile_doc = profile_ref.get(['total_player_xp', 'player_level'])
-                if profile_doc.exists:
-                    profile_data = profile_doc.to_dict()
-                    if profile_data.get('total_player_xp', 0) >= (profile_data.get('player_level', 1) * 100):
-                        new_level = profile_data.get('player_level', 1) + 1
-                        profile_ref.update({'player_level': new_level})
-                        flash(f"Congratulations! You've reached Player Level {new_level}!", "success")
-            except Exception as e:
-                logging.error(f"Failed to update player XP/Level in Firestore for user {user_id}: {e}", exc_info=True)
+            db = current_app.config.get('DB')
+            if db and not current_app.config.get('BYPASS_EXTERNAL_SERVICES'):
+                try:
+                    profile_ref = db.collection('player_profiles').document(user_id)
+                    profile_ref.update({'total_player_xp': db.firestore.Increment(xp_gained)})
+                    profile_doc = profile_ref.get(['total_player_xp', 'player_level'])
+                    if profile_doc.exists:
+                        profile_data = profile_doc.to_dict()
+                        if profile_data.get('total_player_xp', 0) >= (profile_data.get('player_level', 1) * 100):
+                            new_level = profile_data.get('player_level', 1) + 1
+                            profile_ref.update({'player_level': new_level})
+                            flash(f"Congratulations! You've reached Player Level {new_level}!", "success")
+                except Exception as e:
+                    logging.error(f"Failed to update player XP/Level in Firestore for user {user_id}: {e}", exc_info=True)
             summary_text = f"**Chapter Complete!**\n\n* **Comprehension Score:** {comp_score:.1f} / 10\n* **Player XP Gained:** +{xp_gained}\n\n* **Writing Analysis:**\n"
             summary_text += f"    * AWL Words Used ({len(anal_res.get('awl_words_used', []))}): {', '.join(anal_res.get('awl_words_used', [])) if anal_res.get('awl_words_used') else 'None'}\n"
             summary_text += f"    * Relevance & Coherence: {anal_res.get('relevance_coherence_score','?')} / 5\n"

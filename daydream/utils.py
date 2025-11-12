@@ -4,9 +4,8 @@ import re
 from functools import wraps
 import uuid
 
-from flask import session, flash, redirect, url_for, request
+from flask import session, flash, redirect, url_for, request, current_app
 from google.cloud.firestore_v1.base_query import FieldFilter
-from . import db, model, auth_client, firebase_app
 from .quests import get_quest, get_quest_step, HERO_JOURNEY_STAGES
 from .vocabulary import calculate_xp, AWL_WORDS, AWL_DEFINITIONS
 from .lore import thetopia_lore
@@ -90,9 +89,13 @@ def get_ai_response(prompt_type: str, context: dict) -> str | dict:
     return "This is a mock AI response."
 
 def get_user_characters(user_id:str) -> list[dict]:
+    """Fetches a list of characters for a given user ID from Firestore."""
     chars = []
-    if not db:
-        return chars
+    db = current_app.config.get('DB')
+    if not db or current_app.config.get('BYPASS_EXTERNAL_SERVICES'):
+        logging.info(f"Bypassing character fetch for user {user_id}.")
+        return [{"id": "dummy_char_123", "name": "Bypass Charlie", "race": "Human", "class": "Developer"}]
+
     try:
         docs_query = db.collection('characters').where(filter=FieldFilter('user_id', '==', user_id))
         docs_stream = docs_query.stream()
@@ -106,16 +109,73 @@ def get_user_characters(user_id:str) -> list[dict]:
         logging.error(f"Failed to fetch characters for user {user_id}: {e}", exc_info=True)
     return chars
 
-def load_character_data(user_id:str, char_id:str) -> dict | None:
-    # ... (full implementation from original app.py)
+def load_character_data(user_id: str, char_id: str) -> dict | None:
+    """Loads a specific character's data from Firestore."""
+    db = current_app.config.get('DB')
+    if not db or current_app.config.get('BYPASS_EXTERNAL_SERVICES'):
+        logging.info(f"Bypassing character load for char_id {char_id}.")
+        # Return a dummy character structure for bypass mode
+        return {
+            "id": char_id, "name": "Bypass Charlie", "user_id": user_id,
+            "race_name": "Human", "class_name": "Developer", "xp": 100,
+            "level": 5, "inventory": ["Debug Stick"], "quest_flags": {},
+            "location": STARTING_LOCATION
+        }
+    try:
+        doc_ref = db.collection('characters').document(char_id)
+        doc = doc_ref.get()
+        if doc.exists:
+            char_data = doc.to_dict()
+            if char_data.get('user_id') == user_id:
+                return char_data
+            else:
+                logging.warning(f"User {user_id} attempted to load character {char_id} they do not own.")
+    except Exception as e:
+        logging.error(f"Failed to load character {char_id} for user {user_id}: {e}", exc_info=True)
     return None
 
-def save_character_data(user_id:str, character_data:dict|None) -> str|None:
-    # ... (full implementation from original app.py)
+def save_character_data(user_id: str, character_data: dict) -> str | None:
+    """Saves character data to Firestore."""
+    db = current_app.config.get('DB')
+    if not db or current_app.config.get('BYPASS_EXTERNAL_SERVICES'):
+        logging.info(f"Bypassing character save for user {user_id}.")
+        return character_data.get("id", "dummy_char_123") # Return dummy ID
+
+    char_id = character_data.get('id')
+    if not char_id:
+        # Create new character if no ID
+        char_ref = db.collection('characters').document()
+        character_data['id'] = char_ref.id
+        character_data['user_id'] = user_id
+    else:
+        # Update existing character
+        char_ref = db.collection('characters').document(char_id)
+        # Verify ownership before saving
+        if char_ref.get().to_dict().get('user_id') != user_id:
+            logging.error(f"User {user_id} attempted to save character {char_id} they do not own.")
+            return None
+
+    try:
+        char_ref.set(character_data, merge=True)
+        return character_data['id']
+    except Exception as e:
+        logging.error(f"Failed to save character {character_data.get('id')} for user {user_id}: {e}", exc_info=True)
     return None
 
-def check_premium_access(user_id:str) -> bool:
-    # ... (full implementation from original app.py)
+
+def check_premium_access(user_id: str) -> bool:
+    """Checks if a user has premium access from their Firestore profile."""
+    db = current_app.config.get('DB')
+    if not db or current_app.config.get('BYPASS_EXTERNAL_SERVICES'):
+        logging.warning("Bypassing premium check; defaulting to False.")
+        return False
+    try:
+        profile_ref = db.collection('player_profiles').document(user_id)
+        profile = profile_ref.get()
+        if profile.exists:
+            return profile.to_dict().get('has_premium', False)
+    except Exception as e:
+        logging.error(f"Error checking premium status for user {user_id}: {e}", exc_info=True)
     return False
 
 def login_required(f):
@@ -128,12 +188,25 @@ def login_required(f):
     return decorated_function
 
 def instructor_required(f):
+    """
+    Decorator to ensure a user is logged in and has the 'instructor' role.
+    """
     @wraps(f)
     def decorated_function(*args, **kwargs):
         user_id = session.get(SESSION_USER_ID)
         if not user_id:
             flash("You must be logged in to access this page.", "warning")
             return redirect(url_for('auth.login', next=request.url))
+
+        # In bypass mode, we can grant automatic instructor access for testing.
+        if current_app.config.get('BYPASS_EXTERNAL_SERVICES'):
+            logging.warning(f"Bypassing instructor check for user {user_id}.")
+            return f(*args, **kwargs)
+
+        db = current_app.config.get('DB')
+        if not db:
+            flash("Database service not available.", "danger")
+            return redirect(url_for('profile.profile'))
 
         try:
             user_profile = db.collection('player_profiles').document(user_id).get()
@@ -153,9 +226,46 @@ def check_step_completion(p_data: dict, step_data: dict) -> tuple[bool, str | No
     return False, None
 
 def apply_reward(p_data: dict, reward_data: dict | None, user_id: str) -> str | None:
-    # ... (full implementation from original app.py)
-    return None
+    """Applies a quest reward to the character data and saves it."""
+    if reward_data is None:
+        return None
+
+    feedback_message = "Quest completed! "
+    if 'xp' in reward_data:
+        p_data['xp'] = p_data.get('xp', 0) + reward_data['xp']
+        feedback_message += f"You gained {reward_data['xp']} XP. "
+    if 'items' in reward_data:
+        p_data['inventory'] = p_data.get('inventory', []) + reward_data['items']
+        feedback_message += f"You received: {', '.join(reward_data['items'])}. "
+    if 'fate_points' in reward_data:
+        p_data['fate_points'] = p_data.get('fate_points', 0) + reward_data['fate_points']
+        feedback_message += f"You earned {reward_data['fate_points']} Fate Point(s). "
+
+    # Save the updated character data
+    save_character_data(user_id, p_data)
+    return feedback_message.strip()
 
 def get_active_vocab_data(user_id: str) -> dict:
-    # ... (full implementation from original app.py)
-    return {"settings": {}, "vocab": {}}
+    """
+    Gets the active vocabulary data for a user, combining default and custom lists
+    based on user settings in their Firestore profile.
+    """
+    db = current_app.config.get('DB')
+    # Default to using AWL if in bypass mode or if DB fails
+    if not db or current_app.config.get('BYPASS_EXTERNAL_SERVICES'):
+        return {"settings": {"use_default_awl": True}, "vocab": AWL_WORDS}
+
+    try:
+        profile_ref = db.collection('player_profiles').document(user_id)
+        profile = profile_ref.get()
+
+        if profile.exists and profile.to_dict().get('vocab_settings', {}).get('use_default_awl', True):
+             # In a real app, you would also fetch and merge custom vocab lists here
+            return {"settings": profile.to_dict().get('vocab_settings'), "vocab": AWL_WORDS}
+        else:
+            # User has disabled the default list and we haven't implemented custom lists yet
+            return {"settings": profile.to_dict().get('vocab_settings', {}), "vocab": {}}
+    except Exception as e:
+        logging.error(f"Failed to get vocab data for user {user_id}: {e}", exc_info=True)
+        # Fallback to default AWL list on error
+        return {"settings": {"use_default_awl": True}, "vocab": AWL_WORDS}

@@ -26,8 +26,8 @@ def load_character_template_data(filename):
 RACE_DATA = load_character_template_data('races.json')
 CLASS_DATA = load_character_template_data('classes.json')
 PHILOSOPHY_DATA = load_character_template_data('philosophies.json')
-from .. import db
 from ..quests import get_quest, get_quest_step
+from flask import current_app
 
 @bp.route('/create', methods=['GET','POST'])
 @login_required
@@ -203,9 +203,16 @@ def upload_template(template_type):
 @login_required
 def delete_character(char_id):
     user_id = session[SESSION_USER_ID]
+    db = current_app.config.get('DB')
+
     if not char_id:
         flash("Invalid request: Missing character ID.", "error")
         return redirect(url_for('profile.profile'))
+
+    if current_app.config.get('BYPASS_EXTERNAL_SERVICES') or not db:
+        flash("Character deletion is disabled in Bypass Mode.", "warning")
+        return redirect(url_for('profile.profile'))
+
     try:
         char_ref = db.collection('characters').document(char_id)
         char_doc = char_ref.get(['user_id', 'name'])

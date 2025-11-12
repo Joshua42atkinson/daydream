@@ -5,8 +5,8 @@ from ..utils import (
     SESSION_USER_ID, SESSION_CHARACTER_ID, FS_CONVERSATION, FS_CHAPTER_INPUTS,
     FS_QUEST_FLAGS, FS_INVENTORY
 )
-from .. import db
 from ..quests import get_quest
+from flask import current_app
 
 @bp.route('/vocab', methods=['GET'])
 @login_required
@@ -36,21 +36,23 @@ def journal_vocab_report():
             ai_words_by_list[source].append(entry)
 
     ai_lists_metadata = []
-    try:
-        profile_ref = db.collection('player_profiles').document(user_id)
-        ai_lists_query = profile_ref.collection('custom_vocab_lists').where('is_ai_generated', '==', True).stream()
-        for list_doc in ai_lists_query:
-            list_data = list_doc.to_dict()
-            ai_lists_metadata.append({
-                "id": list_doc.id,
-                "name": list_data.get("name", "Unnamed AI List"),
-                "is_active": list_data.get("is_active", False),
-                "word_count": len(list_data.get("words", [])),
-                "created_at": list_data.get("created_at")
-            })
-        ai_lists_metadata.sort(key=lambda x: x.get('created_at', 0), reverse=True)
-    except Exception as e:
-        flash("Error loading vocabulary list details.", "warning")
+    db = current_app.config.get('DB')
+    if db and not current_app.config.get('BYPASS_EXTERNAL_SERVICES'):
+        try:
+            profile_ref = db.collection('player_profiles').document(user_id)
+            ai_lists_query = profile_ref.collection('custom_vocab_lists').where('is_ai_generated', '==', True).stream()
+            for list_doc in ai_lists_query:
+                list_data = list_doc.to_dict()
+                ai_lists_metadata.append({
+                    "id": list_doc.id,
+                    "name": list_data.get("name", "Unnamed AI List"),
+                    "is_active": list_data.get("is_active", False),
+                    "word_count": len(list_data.get("words", [])),
+                    "created_at": list_data.get("created_at")
+                })
+            ai_lists_metadata.sort(key=lambda x: x.get('created_at', 0), reverse=True)
+        except Exception as e:
+            flash("Error loading vocabulary list details.", "warning")
 
     report_summaries = p_data.get('report_summaries', [])
     report_summaries.sort(key=lambda x: x.get('chapter', 0))

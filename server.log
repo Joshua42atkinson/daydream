@@ -1,0 +1,4 @@
+[2025-11-12 23:08:05 +0000] [11002] [INFO] Starting gunicorn 23.0.0
+[2025-11-12 23:08:05 +0000] [11002] [INFO] Listening at: http://0.0.0.0:8080 (11002)
+[2025-11-12 23:08:05 +0000] [11002] [INFO] Using worker: sync
+[2025-11-12 23:08:05 +0000] [11136] [INFO] Booting worker with pid: 11136
