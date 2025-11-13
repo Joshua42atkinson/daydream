@@ -98,7 +98,8 @@ def signup():
                     'use_default_awl': True
                 },
                 FS_PLAYER_HAS_SEEN_INTRO: False,
-                'role': 'student' # Default role for new signups
+                'role': 'creator', # Default role for new signups
+                'creator_level': 1 # Default creator level
             }
             db.collection('player_profiles').document(user.uid).set(profile_data)
             logging.info(f"Firestore player profile created for {user.uid}")

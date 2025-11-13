@@ -10,5 +10,5 @@ def test_vocabulary_manager_page_loads(client):
     response = client.get('/vocabulary/')
     assert response.status_code == 200
     assert b"Vocabulary Manager" in response.data
-    assert b"Manage Vocabulary Sets" in response.data
+    assert b"Vocabulary Bank Editor" in response.data
     assert b"AI Vocabulary Brainstormer" in response.data

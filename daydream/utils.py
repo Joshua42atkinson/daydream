@@ -134,33 +134,43 @@ def load_character_data(user_id: str, char_id: str) -> dict | None:
         logging.error(f"Failed to load character {char_id} for user {user_id}: {e}", exc_info=True)
     return None
 
-def save_character_data(user_id: str, character_data: dict) -> str | None:
-    """Saves character data to Firestore."""
+def save_character_data(user_id, char_id, char_data):
+    """
+    Saves a character's data to Firestore.
+
+    Args:
+        user_id (str): The ID of the user who owns the character.
+        char_id (str): The ID of the character to save.
+        char_data (dict): The character data to save.
+
+    Returns:
+        str: The ID of the saved character, or None on failure.
+    """
     db = current_app.config.get('DB')
     if not db or current_app.config.get('BYPASS_EXTERNAL_SERVICES'):
-        logging.info(f"Bypassing character save for user {user_id}.")
-        return character_data.get("id", "dummy_char_123") # Return dummy ID
+        logging.warning(f"DATABASE: Skipping save for char_id {char_id} due to bypass mode.")
+        # In bypass mode, we'll pretend it saved successfully.
+        return char_id
 
-    char_id = character_data.get('id')
     if not char_id:
-        # Create new character if no ID
-        char_ref = db.collection('characters').document()
-        character_data['id'] = char_ref.id
-        character_data['user_id'] = user_id
-    else:
-        # Update existing character
-        char_ref = db.collection('characters').document(char_id)
-        # Verify ownership before saving
-        if char_ref.get().to_dict().get('user_id') != user_id:
-            logging.error(f"User {user_id} attempted to save character {char_id} they do not own.")
-            return None
+        logging.error("DATABASE: Attempted to save character without an ID.")
+        return None
 
     try:
-        char_ref.set(character_data, merge=True)
-        return character_data['id']
+        # Convert any sets to lists before saving to Firestore
+        sanitized_data = {}
+        for key, value in char_data.items():
+            if isinstance(value, set):
+                sanitized_data[key] = list(value)
+            else:
+                sanitized_data[key] = value
+
+        db.collection('characters').document(char_id).set(sanitized_data)
+        logging.info(f"DATABASE: Successfully saved character {char_id} for user {user_id}.")
+        return char_id
     except Exception as e:
-        logging.error(f"Failed to save character {character_data.get('id')} for user {user_id}: {e}", exc_info=True)
-    return None
+        logging.error(f"DATABASE: Failed to save character {char_id} for user {user_id}: {e}", exc_info=True)
+        return None
 
 
 def check_premium_access(user_id: str) -> bool:

@@ -32,7 +32,7 @@
                     </div>
                     <div class="char-actions">
                         {# Load Character Form #}
-                        <form method="POST" action="{{ url_for('profile') }}" style="display: inline;">
+                        <form method="POST" action="{{ url_for('profile.profile') }}" style="display: inline;">
                             <input type="hidden" name="action" value="load_char">
                             <input type="hidden" name="char_id" value="{{ char.id }}">
                             <button type="submit" class="button button-small">Load</button>
@@ -56,8 +56,7 @@
     <section class="character-creation-options">
         <h3>Create New Character</h3>
         {# Custom Creation Button Form #}
-        <form method="POST" action="{{ url_for('profile') }}">
-            <input type="hidden" name="action" value="create_char">
+        <form method="GET" action="{{ url_for('character.character_creation_view') }}">
              <button type="submit" class="button">Create Custom Character</button>
         </form>
 
@@ -81,7 +80,7 @@
 
     {# --- Vocabulary Highlight Color Settings --- #}
     {# ***** FIXED: Added form tag ***** #}
-    <form method="POST" action="{{ url_for('profile') }}">
+    <form method="POST" action="{{ url_for('profile.profile') }}">
         <section class="vocab-color-settings">
             <h3>Vocabulary Highlight Colors</h3>
             <p>Choose the background colors for highlighted vocabulary words.</p>

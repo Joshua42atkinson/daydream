@@ -1,0 +1,191 @@
+{
+    "dilemmas": [
+        {
+            "id": "dilemma_1",
+            "text": "You see a bully harassing a merchant. Do you:",
+            "choices": [
+                {
+                    "text": "Confront the bully directly.",
+                    "archetype": "Hero"
+                },
+                {
+                    "text": "Find a clever way to distract the bully.",
+                    "archetype": "Jester"
+                },
+                {
+                    "text": "Observe to understand why the bully is angry.",
+                    "archetype": "Sage"
+                },
+                {
+                    "text": "Comfort the merchant after the bully leaves.",
+                    "archetype": "Caregiver"
+                }
+            ]
+        },
+        {
+            "id": "dilemma_2",
+            "text": "You find a mysterious, glowing artifact. Do you:",
+            "choices": [
+                {
+                    "text": "Take it to the authorities to ensure it's safe.",
+                    "archetype": "Everyman"
+                },
+                {
+                    "text": "Try to unlock its power.",
+                    "archetype": "Magician"
+                },
+                {
+                    "text": "Leave it, for it is not yours to take.",
+                    "archetype": "Innocent"
+                },
+                {
+                    "text": "Use it to challenge the current ruler.",
+                    "archetype": "Rebel"
+                }
+            ]
+        },
+        {
+            "id": "dilemma_3",
+            "text": "You are offered a vast fortune to betray your friend. Do you:",
+            "choices": [
+                {
+                    "text": "Refuse, as loyalty is more valuable than gold.",
+                    "archetype": "Lover"
+                },
+                {
+                    "text": "Accept, as the fortune can be used for a greater good.",
+                    "archetype": "Ruler"
+                },
+                {
+                    "text": "Pretend to accept, but then trick the person who offered it.",
+                    "archetype": "Jester"
+                },
+                {
+                    "text": "Seek a way to have both the fortune and your friend.",
+                    "archetype": "Creator"
+                }
+            ]
+        }
+    ],
+    "archetypes": {
+        "Hero": {
+            "description": "You are brave and strong, always willing to fight for what is right.",
+            "stats": {
+                "Courage": 2,
+                "Strength": 1,
+                "Intelligence": 0,
+                "Eloquence": 0,
+                "Agility": 0
+            }
+        },
+        "Sage": {
+            "description": "You are wise and knowledgeable, always seeking to understand the world around you.",
+            "stats": {
+                "Intelligence": 2,
+                "Perception": 1,
+                "Courage": 0,
+                "Strength": 0,
+                "Eloquence": 0,
+                "Agility": 0
+            }
+        },
+        "Jester": {
+            "description": "You are witty and clever, always finding a way to make people laugh.",
+            "stats": {
+                "Eloquence": 2,
+                "Agility": 1,
+                "Courage": 0,
+                "Strength": 0,
+                "Intelligence": 0
+            }
+        },
+        "Caregiver": {
+            "description": "You are kind and compassionate, always willing to help those in need.",
+            "stats": {
+                "Empathy": 2,
+                "Willpower": 1,
+                "Courage": 0,
+                "Strength": 0,
+                "Intelligence": 0,
+                "Eloquence": 0
+            }
+        },
+        "Everyman": {
+            "description": "You are practical and down-to-earth, always looking for a sensible solution.",
+            "stats": {
+                "Common Sense": 2,
+                "Resilience": 1,
+                "Courage": 0,
+                "Strength": 0,
+                "Intelligence": 0,
+                "Eloquence": 0
+            }
+        },
+        "Magician": {
+            "description": "You are a visionary, able to make dreams a reality.",
+            "stats": {
+                "Power": 2,
+                "Intellect": 1,
+                "Courage": 0,
+                "Strength": 0,
+                "Eloquence": 0,
+                "Agility": 0
+            }
+        },
+        "Innocent": {
+            "description": "You are optimistic and pure, always seeing the good in people.",
+            "stats": {
+                "Faith": 2,
+                "Charisma": 1,
+                "Courage": 0,
+                "Strength": 0,
+                "Intelligence": 0,
+                "Eloquence": 0
+            }
+        },
+        "Rebel": {
+            "description": "You are a revolutionary, always fighting against the status quo.",
+            "stats": {
+                "Audacity": 2,
+                "Cunning": 1,
+                "Courage": 0,
+                "Strength": 0,
+                "Intelligence": 0,
+                "Eloquence": 0
+            }
+        },
+        "Lover": {
+            "description": "You are passionate and devoted, always following your heart.",
+            "stats": {
+                "Passion": 2,
+                "Vitality": 1,
+                "Courage": 0,
+                "Strength": 0,
+                "Intelligence": 0,
+                "Eloquence": 0
+            }
+        },
+        "Ruler": {
+            "description": "You are a natural leader, always taking charge of the situation.",
+            "stats": {
+                "Leadership": 2,
+                "Control": 1,
+                "Courage": 0,
+                "Strength": 0,
+                "Intelligence": 0,
+                "Eloquence": 0
+            }
+        },
+        "Creator": {
+            "description": "You are imaginative and resourceful, always creating something new.",
+            "stats": {
+                "Creativity": 2,
+                "Ingenuity": 1,
+                "Courage": 0,
+                "Strength": 0,
+                "Intelligence": 0,
+                "Eloquence": 0
+            }
+        }
+    }
+}

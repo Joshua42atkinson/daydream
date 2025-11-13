@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Your Archetype{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="my-4">Your Archetype is the {{ archetype_name }}</h1>
+    <p class="lead">"{{ details.description }}"</p>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <h5>Starting Stats for {{ name }}</h5>
+        </div>
+        <div class="card-body">
+            <ul>
+                {% for stat, value in details.stats.items() %}
+                <li><strong>{{ stat }}:</strong> +{{ value }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <p>Do you wish to continue with this character?</p>
+
+    <div class="review-actions" style="margin-top: 10px; display: flex; gap: 10px; justify-content: center;">
+        {# Finalize Button Form #}
+        <form method="POST" action="{{ url_for('character.character_creation_view') }}">
+            <input type="hidden" name="creation_stage" value="finalize">
+            <button type="submit" class="btn btn-primary">Finalize Character</button>
+        </form>
+        {# Start Over Button Form #}
+        <form method="POST" action="{{ url_for('character.character_creation_view') }}">
+            <input type="hidden" name="creation_stage" value="restart">
+            <button type="submit" class="btn btn-secondary">Start Over</button>
+        </form>
+    </div>
+</div>
+{% endblock %}

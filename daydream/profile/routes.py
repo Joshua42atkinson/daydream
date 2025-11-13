@@ -13,7 +13,6 @@ from ..utils import (
     SESSION_SIDE_QUEST_TURNS, STARTING_LOCATION, FS_CONVERSATION, FS_CHAPTER_INPUTS,
     BASE_FATE_POINTS
 )
-from ..character.routes import RACE_DATA, CLASS_DATA, PHILOSOPHY_DATA
 from .. import premade_character_templates
 from ..quests import get_quest, get_quest_step
 from flask import current_app
@@ -81,10 +80,10 @@ def delete_vocab_list(list_id):
     # ... (Full logic from original delete_vocab_list)
     return jsonify({"success": True, "message": "List deleted."})
 
-@bp.route('/grant-instructor-role')
+@bp.route('/grant-mentor-role')
 @login_required
-def grant_instructor_role():
-    """A temporary route to grant instructor role to the current user."""
+def grant_mentor_role():
+    """A temporary route to grant mentor role to the current user."""
     user_id = session.get(SESSION_USER_ID)
     db = current_app.config.get('DB')
 
@@ -98,11 +97,11 @@ def grant_instructor_role():
 
     try:
         user_profile_ref = db.collection('player_profiles').document(user_id)
-        user_profile_ref.update({'role': 'instructor'})
-        flash('You have been granted instructor privileges!', 'success')
-        logging.info(f"User {user_id} granted instructor role.")
+        user_profile_ref.update({'role': 'mentor'})
+        flash('You have been granted mentor privileges!', 'success')
+        logging.info(f"User {user_id} granted mentor role.")
     except Exception as e:
-        logging.error(f"Error granting instructor role to user {user_id}: {e}")
-        flash('An error occurred while granting instructor privileges.', 'error')
+        logging.error(f"Error granting mentor role to user {user_id}: {e}")
+        flash('An error occurred while granting mentor privileges.', 'error')
 
     return redirect(url_for('profile.profile'))

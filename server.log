@@ -1,4 +1,10 @@
-[2025-11-12 23:08:05 +0000] [11002] [INFO] Starting gunicorn 23.0.0
-[2025-11-12 23:08:05 +0000] [11002] [INFO] Listening at: http://0.0.0.0:8080 (11002)
-[2025-11-12 23:08:05 +0000] [11002] [INFO] Using worker: sync
-[2025-11-12 23:08:05 +0000] [11136] [INFO] Booting worker with pid: 11136
+CRITICAL:root:FATAL ERROR: Could not initialize Firebase: Firebase key file not found at path: /app/path/to/your/firebase-credentials.json
+CRITICAL:root:FATAL ERROR: Could not initialize Google AI: GEMINI_API_KEY environment variable not set or is still the placeholder.
+Creating Flask app...
+--- Starting Daydream Server (Refactored) ---
+ Mode: Debug
+ Host: 0.0.0.0
+ Port: 8080
+-----------------------------------
+ * Serving Flask app 'daydream'
+ * Debug mode: on

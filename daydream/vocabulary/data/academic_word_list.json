@@ -1,0 +1,16 @@
+{
+    "analyze": {
+        "definition": "To examine in detail the constitution or structure of (something, especially information), typically for purposes of explanation and interpretation.",
+        "example_sentence": "The scientist will analyze the data to find a new trend.",
+        "genai_image_prompt": "A scientist looking at a glowing chart with data trends.",
+        "genai_audio_prompt": "A thoughtful, inquisitive voice.",
+        "sublist": 1
+    },
+    "approach": {
+        "definition": "Come near or nearer to (someone or something) in distance or time.",
+        "example_sentence": "The cat will approach the bird slowly.",
+        "genai_image_prompt": "A cat stalking a small bird in a garden.",
+        "genai_audio_prompt": "A soft, cautious voice.",
+        "sublist": 1
+    }
+}

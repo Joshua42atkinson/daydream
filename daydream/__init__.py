@@ -65,6 +65,7 @@ except (FileNotFoundError, json.JSONDecodeError) as e:
 
 def create_app(test_config=None):
     """Create and configure an instance of the Flask application."""
+    print("Creating Flask app...")
     # Load environment variables from .env file
     load_dotenv()
 
@@ -219,6 +220,12 @@ def create_app(test_config=None):
 
     from .creator_cockpit import bp as creator_cockpit_bp
     app.register_blueprint(creator_cockpit_bp)
+
+    from .mentor import bp as mentor_bp
+    app.register_blueprint(mentor_bp)
+
+    from .reflection import bp as reflection_bp
+    app.register_blueprint(reflection_bp)
 
     from .settings import bp as settings_bp
     app.register_blueprint(settings_bp)
