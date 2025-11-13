@@ -65,6 +65,7 @@ except (FileNotFoundError, json.JSONDecodeError) as e:
 
 def create_app(test_config=None):
     """Create and configure an instance of the Flask application."""
+    print("Creating Flask app...")
     # Load environment variables from .env file
     load_dotenv()
 
