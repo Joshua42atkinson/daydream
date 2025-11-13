@@ -80,3 +80,29 @@ def toggle_vocab_list(list_id):
 def delete_vocab_list(list_id):
     # ... (Full logic from original delete_vocab_list)
     return jsonify({"success": True, "message": "List deleted."})
+
+@bp.route('/grant-mentor-role')
+@login_required
+def grant_mentor_role():
+    """A temporary route to grant mentor role to the current user."""
+    user_id = session.get(SESSION_USER_ID)
+    db = current_app.config.get('DB')
+
+    if not user_id:
+        flash("User not found in session.", "error")
+        return redirect(url_for('profile.profile'))
+
+    if current_app.config.get('BYPASS_EXTERNAL_SERVICES') or not db:
+        flash("Cannot grant roles in Bypass Mode.", "warning")
+        return redirect(url_for('profile.profile'))
+
+    try:
+        user_profile_ref = db.collection('player_profiles').document(user_id)
+        user_profile_ref.update({'role': 'mentor'})
+        flash('You have been granted mentor privileges!', 'success')
+        logging.info(f"User {user_id} granted mentor role.")
+    except Exception as e:
+        logging.error(f"Error granting mentor role to user {user_id}: {e}")
+        flash('An error occurred while granting mentor privileges.', 'error')
+
+    return redirect(url_for('profile.profile'))
