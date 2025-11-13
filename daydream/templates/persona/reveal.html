@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+
+{% block styles %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/persona.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="reveal-container">
+  <h1>Your Archetype is: {{ archetype.name }}</h1>
+  <p>{{ archetype.description }}</p>
+  <h2>Stat Buffs:</h2>
+  <ul>
+    {% for stat, value in archetype.stat_buffs.items() %}
+      <li>{{ stat }}: +{{ value }}</li>
+    {% endfor %}
+  </ul>
+  <a href="{{ url_for('main_menu.menu') }}">Continue</a>
+</div>
+{% endblock %}

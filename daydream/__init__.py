@@ -233,6 +233,9 @@ def create_app(test_config=None):
     from .system_diagnostics import bp as system_diagnostics_bp
     app.register_blueprint(system_diagnostics_bp)
 
+    from .persona import bp as persona_bp
+    app.register_blueprint(persona_bp)
+
     # A simple root route to redirect
     @app.route('/')
     def index():
