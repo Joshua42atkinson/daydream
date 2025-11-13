@@ -22,10 +22,10 @@
             border-radius: 8px;
             box-shadow: 0 4px 6px rgba(0,0,0,0.1);
             width: 100%;
-            max-width: 600px;
+            max-width: 800px; /* Increased width */
             text-align: center;
         }
-        h1 {
+        h1, h2 {
             color: #4a4a4a;
         }
         p {
@@ -59,26 +59,50 @@
             color: #007bff;
             text-decoration: none;
         }
+        .contextual-tagger {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            text-align: left;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Creator Cockpit</h1>
         <p>You have successfully transitioned to the <strong>CreatorCockpit</strong> state.</p>
-        <p>This is a placeholder page.</p>
 
-        {% if tools %}
-            <ul class="tool-list">
-                {% for tool in tools %}
-                    <li class="tool-item">
-                        <a href="#">{{ tool.id | replace('.', ' ') | title }}</a>
-                        <p>{{ tool.description }}</p>
-                    </li>
-                {% endfor %}
-            </ul>
-        {% endif %}
+        <div class="tool-list">
+            {% for tool in tools %}
+                <div class="tool-item">
+                    <a href="#">{{ tool.id | replace('.', ' ') | title }}</a>
+                    <p>{{ tool.description }}</p>
+                </div>
+            {% endfor %}
+        </div>
 
-        {# The 'project.close_module' tool should lead back to the main menu #}
+        <div class="contextual-tagger">
+            <h2>Contextual Vocabulary Tagger</h2>
+            <p>Select a word from your vocabulary bank and tag it to a game element.</p>
+            <form>
+                <div class="form-group">
+                    <label for="vocab-select">Select a Word:</label>
+                    <select class="form-control" id="vocab-select">
+                        <option>-- Select a word --</option>
+                        {% for word in vocab_words %}
+                            <option value="{{ word }}">{{ word }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label for="element-id">Game Element ID (Node, Choice, Item):</label>
+                    <input type="text" class="form-control" id="element-id" placeholder="e.g., node_01, choice_A, item_key">
+                </div>
+                <button type="submit" class="btn btn-primary">Tag Word</button>
+            </form>
+        </div>
+
         <a href="{{ url_for('tool_handlers.handle_tool', tool_id='project.close_module') }}" class="back-link">Close Module & Return to Main Menu</a>
     </div>
 </body>

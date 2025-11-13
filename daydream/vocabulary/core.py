@@ -7,7 +7,7 @@ import logging
 import os
 
 # --- Vocabulary Loading ---
-def load_vocabulary_from_file(filename="default_vocab.json"):
+def load_vocabulary_from_file(filename="academic_word_list.json"):
     """
     Loads a vocabulary set from a specified JSON file in the data directory.
     Args:
@@ -54,8 +54,7 @@ SUBLIST_TO_CATEGORY = {
 }
 
 # Pre-calculate category for each word for faster lookup
-AWL_CATEGORIZED = {word: SUBLIST_TO_CATEGORY.get(sublist, 'medium') # Default to medium if sublist missing?
-                   for word, sublist in AWL_WORDS.items()}
+AWL_CATEGORIZED = {word: SUBLIST_TO_CATEGORY.get(details.get('sublist'), 'medium') for word, details in AWL_WORDS.items()}
 
 import json
 import logging

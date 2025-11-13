@@ -6,31 +6,45 @@
 <div class="container">
     <h1 class="my-4">Vocabulary Manager</h1>
 
-    <!-- Vocabulary File Management -->
+    <!-- Vocabulary Bank Management -->
     <div class="card mb-4">
         <div class="card-header">
-            <h2>Manage Vocabulary Sets</h2>
+            <h2>Vocabulary Bank Editor</h2>
         </div>
         <div class="card-body">
-            <p>Upload new vocabulary sets in JSON format. The file should contain a single JSON object where keys are words and values are their difficulty level (e.g., 1-10).</p>
-            <form action="{{ url_for('vocabulary.upload_vocab') }}" method="post" enctype="multipart/form-data">
-                <div class="form-group">
-                    <label for="vocab_file">Upload Vocabulary File</label>
-                    <input type="file" class="form-control-file" id="vocab_file" name="vocab_file" accept=".json" required>
-                </div>
-                <button type="submit" class="btn btn-primary">Upload</button>
-            </form>
+            <p>Create, edit, and manage individual vocabulary entries in your vocabulary sets.</p>
+            <button class="btn btn-success mb-3" data-toggle="modal" data-target="#editVocabModal" data-word="" data-details='{}'>
+                Create New Word
+            </button>
             <hr>
-            <h4>Current Vocabulary Sets</h4>
-            <ul>
-                {% for vocab_file in vocab_files %}
-                    <li>{{ vocab_file }}</li>
-                {% endfor %}
-            </ul>
+            <h4>Current Vocabulary Set: <strong>{{ active_file }}</strong></h4>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Word</th>
+                        <th>Definition</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for word, details in vocab_data.items() %}
+                    <tr>
+                        <td><strong>{{ word }}</strong></td>
+                        <td>{{ details.definition | truncate(100) }}</td>
+                        <td>
+                            <button class="btn btn-sm btn-primary" data-toggle="modal" data-target="#editVocabModal" data-word="{{ word }}" data-details='{{ details | tojson }}'>
+                                Edit
+                            </button>
+                            <!-- Add a delete form/button here if needed -->
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <!-- AI Vocabulary Brainstorming -->
+    <!-- AI Vocabulary Brainstorming (kept for now) -->
     <div class="card">
         <div class="card-header">
             <h2>AI Vocabulary Brainstormer</h2>
@@ -64,4 +78,81 @@
         </div>
     </div>
 </div>
+
+<!-- Edit/Create Word Modal -->
+<div class="modal fade" id="editVocabModal" tabindex="-1" role="dialog" aria-labelledby="editVocabModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editVocabModalLabel">Edit Vocabulary Entry</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="vocab-form" method="post">
+                    <input type="hidden" id="original_word" name="original_word">
+                    <div class="form-group">
+                        <label for="word">Word</label>
+                        <input type="text" class="form-control" id="word" name="word" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="definition">Definition</label>
+                        <textarea class="form-control" id="definition" name="definition" rows="3" required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="example_sentence">Example Sentence</label>
+                        <input type="text" class="form-control" id="example_sentence" name="example_sentence">
+                    </div>
+                    <div class="form-group">
+                        <label for="genai_image_prompt">GenAI Image Prompt</label>
+                        <input type="text" class="form-control" id="genai_image_prompt" name="genai_image_prompt">
+                    </div>
+                    <div class="form-group">
+                        <label for="genai_audio_prompt">GenAI Audio Prompt</label>
+                        <input type="text" class="form-control" id="genai_audio_prompt" name="genai_audio_prompt">
+                    </div>
+                    <div class="form-group">
+                        <label for="sublist">Difficulty Sublist (1-10)</label>
+                        <input type="number" class="form-control" id="sublist" name="sublist" min="1" max="10" required>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary" form="vocab-form">Save changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    $('#editVocabModal').on('show.bs.modal', function (event) {
+        var button = $(event.relatedTarget);
+        var word = button.data('word');
+        var details = button.data('details');
+        var modal = $(this);
+
+        if (word) {
+            modal.find('.modal-title').text('Edit: ' + word);
+            modal.find('#vocab-form').attr('action', '/vocabulary/edit/' + encodeURIComponent(word));
+            modal.find('#original_word').val(word);
+            modal.find('#word').val(word);
+            modal.find('#definition').val(details.definition);
+            modal.find('#example_sentence').val(details.example_sentence);
+            modal.find('#genai_image_prompt').val(details.genai_image_prompt);
+            modal.find('#genai_audio_prompt').val(details.genai_audio_prompt);
+            modal.find('#sublist').val(details.sublist);
+        } else {
+            modal.find('.modal-title').text('Create New Vocabulary Word');
+            modal.find('#vocab-form').attr('action', '/vocabulary/create');
+            modal.find('#vocab-form')[0].reset();
+            modal.find('#original_word').val('');
+        }
+    });
+});
+</script>
 {% endblock %}

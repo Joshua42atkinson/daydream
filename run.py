@@ -25,4 +25,7 @@ if __name__ == '__main__':
     # Use app.run() for direct execution.
     # For production, Gunicorn should be used and pointed to this `app` object.
     # Example: gunicorn --bind 0.0.0.0:8080 "run:app"
-    app.run(debug=debug_mode, host=host, port=port, use_reloader=use_reloader)
+    try:
+        app.run(debug=debug_mode, host=host, port=port, use_reloader=use_reloader)
+    except Exception as e:
+        print(f"Error starting server: {e}")

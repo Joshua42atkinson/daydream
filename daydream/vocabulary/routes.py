@@ -4,10 +4,11 @@ import logging
 from flask import render_template, request, redirect, url_for, session, flash, current_app
 from werkzeug.utils import secure_filename
 from . import bp
-
+from .core import load_vocabulary_from_file
 
 # Define the path to the vocabulary data directory
 VOCAB_DATA_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
+ACTIVE_VOCAB_FILE = "academic_word_list.json" # Make this configurable later
 
 @bp.route('/')
 def vocabulary_manager():
@@ -16,62 +17,107 @@ def vocabulary_manager():
     def _vocabulary_manager():
         """Renders the main vocabulary management page."""
         try:
-            # Ensure the data directory exists
-            os.makedirs(VOCAB_DATA_PATH, exist_ok=True)
-            # List available vocabulary files
-            vocab_files = [f for f in os.listdir(VOCAB_DATA_PATH) if f.endswith('.json')]
-        except OSError as e:
-            logging.error(f"Error accessing vocabulary directory {VOCAB_DATA_PATH}: {e}")
-            flash("Could not access vocabulary directory.", "error")
-            vocab_files = []
+            vocab_data = load_vocabulary_from_file(ACTIVE_VOCAB_FILE)
+        except Exception as e:
+            logging.error(f"Error loading vocabulary file {ACTIVE_VOCAB_FILE}: {e}")
+            flash("Could not load the active vocabulary file.", "error")
+            vocab_data = {}
 
-        return render_template('vocabulary_manager.html', vocab_files=vocab_files)
+        return render_template('vocabulary_manager.html',
+                               vocab_data=vocab_data,
+                               active_file=ACTIVE_VOCAB_FILE)
     return _vocabulary_manager()
 
-@bp.route('/upload', methods=['POST'])
-def upload_vocab():
+@bp.route('/create', methods=['POST'])
+def create_vocab_entry():
     from ..utils import login_required
     @login_required
-    def _upload_vocab():
-        """Handles uploading of new vocabulary JSON files."""
-        if 'vocab_file' not in request.files:
-            flash('No file part in the request.', 'error')
-            return redirect(url_for('vocabulary.vocabulary_manager'))
+    def _create_vocab_entry():
+        """Creates a new vocabulary entry in the active vocabulary file."""
+        try:
+            vocab_data = load_vocabulary_from_file(ACTIVE_VOCAB_FILE)
 
-        file = request.files['vocab_file']
-        if file.filename == '':
-            flash('No file selected for uploading.', 'warning')
-            return redirect(url_for('vocabulary.vocabulary_manager'))
+            new_word = request.form.get('word', '').strip()
+            if not new_word:
+                flash('Word cannot be empty.', 'error')
+                return redirect(url_for('vocabulary.vocabulary_manager'))
 
-        if file and file.filename.endswith('.json'):
-            filename = secure_filename(file.filename)
-            save_path = os.path.join(VOCAB_DATA_PATH, filename)
+            if new_word in vocab_data:
+                flash(f'Word "{new_word}" already exists.', 'error')
+                return redirect(url_for('vocabulary.vocabulary_manager'))
 
-            try:
-                # Validate JSON content before saving
-                json_data = json.load(file)
-                if not isinstance(json_data, dict):
-                    raise ValueError("JSON content must be a dictionary.")
+            entry_details = {
+                "definition": request.form.get('definition', ''),
+                "example_sentence": request.form.get('example_sentence', ''),
+                "genai_image_prompt": request.form.get('genai_image_prompt', ''),
+                "genai_audio_prompt": request.form.get('genai_audio_prompt', ''),
+                "sublist": int(request.form.get('sublist', 5))
+            }
 
-                # Save the validated JSON data
-                with open(save_path, 'w', encoding='utf-8') as f:
-                    json.dump(json_data, f, indent=4)
+            vocab_data[new_word] = entry_details
 
-                flash(f'Vocabulary file "{filename}" uploaded and validated successfully.', 'success')
-            except json.JSONDecodeError:
-                flash('Invalid JSON file. Please check the file content and structure.', 'error')
-            except ValueError as e:
-                flash(str(e), 'error')
-            except Exception as e:
-                logging.error(f"Error saving uploaded vocab file {filename}: {e}")
-                flash('An unexpected error occurred while saving the file.', 'error')
+            # Save the updated data back to the file
+            save_path = os.path.join(VOCAB_DATA_PATH, ACTIVE_VOCAB_FILE)
+            with open(save_path, 'w', encoding='utf-8') as f:
+                json.dump(vocab_data, f, indent=4)
 
-        else:
-            flash('Invalid file type. Please upload a .json file.', 'error')
+            flash(f'Successfully created new word: "{new_word}".', 'success')
+
+        except Exception as e:
+            logging.error(f"Error creating vocabulary entry: {e}")
+            flash('An unexpected error occurred while creating the entry.', 'error')
 
         return redirect(url_for('vocabulary.vocabulary_manager'))
-    return _upload_vocab()
+    return _create_vocab_entry()
 
+@bp.route('/edit/<word>', methods=['POST'])
+def edit_vocab_entry(word):
+    from ..utils import login_required
+    @login_required
+    def _edit_vocab_entry(word):
+        """Updates an existing vocabulary entry."""
+        try:
+            vocab_data = load_vocabulary_from_file(ACTIVE_VOCAB_FILE)
+
+            original_word = request.form.get('original_word', word)
+            new_word = request.form.get('word', '').strip()
+
+            if not new_word:
+                flash('Word cannot be empty.', 'error')
+                return redirect(url_for('vocabulary.vocabulary_manager'))
+
+            # If the word is being renamed, check if the new name conflicts with an existing entry.
+            if new_word != original_word and new_word in vocab_data:
+                flash(f'Word "{new_word}" already exists.', 'error')
+                return redirect(url_for('vocabulary.vocabulary_manager'))
+
+            # Remove the old entry if the word was renamed
+            if new_word != original_word and original_word in vocab_data:
+                vocab_data.pop(original_word)
+
+            entry_details = {
+                "definition": request.form.get('definition', ''),
+                "example_sentence": request.form.get('example_sentence', ''),
+                "genai_image_prompt": request.form.get('genai_image_prompt', ''),
+                "genai_audio_prompt": request.form.get('genai_audio_prompt', ''),
+                "sublist": int(request.form.get('sublist', 5))
+            }
+
+            vocab_data[new_word] = entry_details
+
+            # Save the updated data back to the file
+            save_path = os.path.join(VOCAB_DATA_PATH, ACTIVE_VOCAB_FILE)
+            with open(save_path, 'w', encoding='utf-8') as f:
+                json.dump(vocab_data, f, indent=4)
+
+            flash(f'Successfully updated word: "{new_word}".', 'success')
+
+        except Exception as e:
+            logging.error(f"Error updating vocabulary entry for word '{word}': {e}")
+            flash('An unexpected error occurred while updating the entry.', 'error')
+
+        return redirect(url_for('vocabulary.vocabulary_manager'))
+    return _edit_vocab_entry(word)
 
 @bp.route('/brainstorm', methods=['POST'])
 def brainstorm_vocab():
