@@ -2,22 +2,23 @@
 Daydream is a high-performance, local-first instructional design platform for creating storyfied, AI-driven gameducation.
 This project is an open-source initiative to build a next-generation creative tool that empowers educators, trainers, and writers to build rich, interactive learning experiences.
 
-> **Note on Current Implementation:** This project is currently implemented as a Python-based web application using the Flask framework. The vision outlined in this README, including the Rust technology stack and the "Diamond Body" hardware target, represents the long-term architectural goal. The current codebase is the foundational prototype from which this vision will be realized.
+> **Note:** This project is a Python-based web application using the Flask framework. The "Future Vision" section at the end of this document outlines the long-term architectural goals, which include a transition to a Rust-based technology stack.
 
-## Getting Started with the Current Web Application
+## Getting Started
 
-This guide will walk you through setting up and running the current Python and Flask-based web application.
+This guide will walk you through setting up and running the application.
 
 ### 1. Automated Setup
 
-To simplify the setup process, a `setup.sh` script is provided to automate the installation of dependencies and the creation of the `.env` file.
+To simplify the setup process, a `setup.sh` script is provided. This is the recommended method.
 
 ```bash
 ./setup.sh
 ```
 
 This script will:
-
+*   Check for Python and Pip.
+*   Create a virtual environment.
 *   Install all the required Python dependencies from `requirements.txt`.
 *   Create a `.env` file from the `.env.example` template.
 
@@ -25,6 +26,11 @@ This script will:
 
 If you prefer to set up the project manually, follow these steps:
 
+*   **Create and activate a virtual environment:**
+    ```bash
+    python3 -m venv venv
+    source venv/bin/activate
+    ```
 *   **Install dependencies:**
     ```bash
     pip install -r requirements.txt
@@ -51,7 +57,11 @@ Once you have configured your `.env` file, you can run the application in one of
     gunicorn --bind 0.0.0.0:8080 "run:app"
     ```
 
-## The "Diamond Body" Vision
+## Future Vision: The "Diamond Body"
+
+The long-term vision for Daydream is to evolve from a web application into a high-performance, local-first desktop application built with Rust. This section outlines the architectural goals and the technology stack for that future version.
+
+### Core Philosophy
 
 In an era of cloud-based AI, Daydream takes a different path. Our core philosophy is built on three pillars:
 
@@ -59,20 +69,20 @@ In an era of cloud-based AI, Daydream takes a different path. Our core philosoph
 *   **Performance:** By leveraging Rust and targeting modern AI-accelerated hardware, Daydream achieves performance that is impossible in typical web-based or Python-scripted environments. This allows for the use of powerful, large language models and complex multi-agent systems locally.
 *   **Accessibility:** The entire platform is free, open-source, and built to be a single, distributable application. Our goal is to create a powerful tool that can be run by institutions and individuals who value privacy and performance, from a public school with a custom-built machine to a power user at home.
 
-## Key Features
+### Key Features of the Future Version
 
 *   **AI-Powered Instructional Design:** Go beyond static content. Build dynamic, narrative-driven learning modules where the story adapts to user choices and learning progress.
 *   **Local-First LLM Inference:** The entire AI engine runs on your local machine. No API keys, no subscriptions, no data sent to third parties.
 *   **"Great Recycler" Multi-Agent System:** A sophisticated, hierarchical agent system orchestrates the learning experience. A high-level strategic agent analyzes long-term progress while a crew of tactical agents manages quests, character development, and UI updates in real-time.
 *   **Modular Creator's Cockpit:** A powerful yet intuitive desktop application where you can:
-    *   Design complex Quest Systems with triggers and objectives.[1]
-    *   Define and track custom Learning Objectives.[1]
-    *   Implement the "AI as a Mirror" Reflective Learning Loop for deeper metacognitive engagement.[1]
+    *   Design complex Quest Systems with triggers and objectives.
+    *   Define and track custom Learning Objectives.
+    *   Implement the "AI as a Mirror" Reflective Learning Loop for deeper metacognitive engagement.
 *   **Cross-Platform Desktop App:** Built with Tauri, Daydream is a lightweight, secure application that runs natively on Linux, macOS, and Windows.
 
-## Target Hardware Platform
+### Target Hardware Platform
 
-Daydream v3 is engineered to harness the full potential of modern Accelerated Processing Units (APUs). The primary reference platform is the AMD Ryzen™ AI Max+ 395 ("Strix Halo") APU, a System-on-Chip that combines:
+The future version of Daydream is engineered to harness the full potential of modern Accelerated Processing Units (APUs). The primary reference platform is the AMD Ryzen™ AI Max+ 395 ("Strix Halo") APU, a System-on-Chip that combines:
 
 *   **CPU:** 16 high-performance "Zen 5" cores.
 *   **iGPU:** A powerful 40 CU Radeon™ 8060S based on the RDNA™ 3.5 architecture.
@@ -81,67 +91,16 @@ Daydream v3 is engineered to harness the full potential of modern Accelerated Pr
 
 This local-first "supercomputer" architecture allows Daydream to deliver a level of AI-driven complexity and responsiveness that is simply not possible with cloud-dependent services.
 
-## Technology Stack
+### Future Technology Stack (Rust-based)
 
 This project is a pure Rust ecosystem, leveraging the best of the community for performance, safety, and modern development practices.
 
-*   **Application Framework:**(https://tauri.app/) - For building a secure, lightweight, and cross-platform desktop application with a web-based frontend.
-*   **AI/ML Inference Engine:** Candle - A minimalist, high-performance ML framework from Hugging Face, enabling us to run LLMs directly in Rust with CPU and GPU acceleration.
-*   **Multi-Agent Framework:** AutoAgents - A cutting-edge Rust framework for building and coordinating multiple intelligent agents, forming the core of the "Great Recycler" system.
-*   **Game & State Engine:**(https://bevyengine.org/) - Bevy's powerful, data-driven Entity-Component-System is used to manage the state of the instructional world, characters, and quests in a highly efficient manner.
+*   **Application Framework:** [Tauri](https://tauri.app/) - For building a secure, lightweight, and cross-platform desktop application with a web-based frontend.
+*   **AI/ML Inference Engine:** [Candle](https://github.com/huggingface/candle) - A minimalist, high-performance ML framework from Hugging Face, enabling us to run LLMs directly in Rust with CPU and GPU acceleration.
+*   **Multi-Agent Framework:** [AutoAgents](https://github.com/AutoAgents/AutoAgents) - A cutting-edge Rust framework for building and coordinating multiple intelligent agents, forming the core of the "Great Recycler" system.
+*   **Game & State Engine:** [Bevy](https://bevyengine.org/) - Bevy's powerful, data-driven Entity-Component-System is used to manage the state of the instructional world, characters, and quests in a highly efficient manner.
 
-## Getting Started
-
-This guide assumes you are on Ubuntu 24.04 LTS and are targeting the AMD "Strix Halo" platform.
-
-### 1. Host System Preparation
-
-To unlock the full unified memory capabilities of the hardware, you must configure the kernel's boot parameters.
-
-```bash
-# Edit the GRUB configuration file
-sudo nano /etc/default/grub
-
-# Find the line GRUB_CMDLINE_LINUX_DEFAULT and add the required parameters.
-# The final line should look like this:
-GRUB_CMDLINE_LINUX_DEFAULT="quiet splash amd_iommu=off amdgpu.gttsize=131072 ttm.pages_limit=33554432"
-
-# Save the file, then update GRUB and reboot
-sudo update-grub
-sudo reboot
-```
-
-These settings allow the integrated GPU to address up to 128 GiB of system RAM, which is essential for running large models.
-
-### 2. Install Dependencies
-
-You will need the Rust toolchain, essential build tools, and Git.
-
-```bash
-# Install Rust via rustup
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
-source "$HOME/.cargo/env"
-
-# Install build essentials and Tauri prerequisites
-sudo apt update
-sudo apt install libwebkit2gtk-4.1-dev build-essential curl wget libssl-dev libgtk-3-dev libayatana-appindicator3-dev librsvg2-dev
-```
-
-### 3. Clone and Build Daydream
-
-```bash
-# Clone the repository
-git clone https://github.com/your-username/daydream.git
-cd daydream
-
-# Build the project in release mode
-cargo build --release
-
-# Run the application
-cargo run --release
-```
-
-## Roadmap
+### Roadmap for the Future Vision
 
 Daydream is an ambitious project under active development. Our high-level roadmap is structured as follows:
 
