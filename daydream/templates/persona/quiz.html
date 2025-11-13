@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block styles %}
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/persona.css') }}">
+{% endblock %}
+
+{% block content %}
+<div class="persona-quiz-container">
+  <h1>The Persona Quiz</h1>
+  <p>Answer the following questions to discover your archetype.</p>
+  <form action="{{ url_for('persona.reveal') }}" method="post">
+    {% for dilemma in dilemmas %}
+      <div class="dilemma">
+        <h2>{{ dilemma.text }}</h2>
+        {% for choice in dilemma.choices %}
+          <div class="choice">
+            <input type="radio" name="{{ dilemma.id }}" value="{{ choice.archetype_id }}" id="choice-{{ choice.id }}" required>
+            <label for="choice-{{ choice.id }}">{{ choice.text }}</label>
+          </div>
+        {% endfor %}
+      </div>
+    {% endfor %}
+    <button type="submit">Reveal My Archetype</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,118 @@
+/* Persona Quiz Styles */
+.persona-quiz-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: #1e1e1e;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+.persona-quiz-container h1 {
+    color: #f5d76e;
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.dilemma {
+    margin-bottom: 2rem;
+    padding: 1.5rem;
+    background-color: #2a2a2a;
+    border-radius: 8px;
+}
+
+.dilemma h2 {
+    color: #f1f1f1;
+    margin-bottom: 1rem;
+}
+
+.choice {
+    margin-bottom: 0.5rem;
+}
+
+.choice label {
+    display: block;
+    padding: 1rem;
+    background-color: #3a3a3a;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.choice input[type="radio"] {
+    display: none;
+}
+
+.choice input[type="radio"]:checked + label {
+    background-color: #f5d76e;
+    color: #1e1e1e;
+}
+
+.persona-quiz-container button {
+    display: block;
+    width: 100%;
+    padding: 1rem;
+    background-color: #f5d76e;
+    color: #1e1e1e;
+    border: none;
+    border-radius: 5px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.persona-quiz-container button:hover {
+    background-color: #f7dc8a;
+}
+
+/* Reveal Page Styles */
+.reveal-container {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background-color: #1e1e1e;
+    border-radius: 10px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    text-align: center;
+}
+
+.reveal-container h1 {
+    color: #f5d76e;
+    margin-bottom: 1rem;
+}
+
+.reveal-container p {
+    color: #f1f1f1;
+    margin-bottom: 1.5rem;
+}
+
+.reveal-container h2 {
+    color: #f5d76e;
+    margin-bottom: 1rem;
+}
+
+.reveal-container ul {
+    list-style: none;
+    padding: 0;
+    margin-bottom: 2rem;
+}
+
+.reveal-container li {
+    color: #f1f1f1;
+    margin-bottom: 0.5rem;
+}
+
+.reveal-container a {
+    display: inline-block;
+    padding: 1rem 2rem;
+    background-color: #f5d76e;
+    color: #1e1e1e;
+    border-radius: 5px;
+    text-decoration: none;
+    font-size: 1.2rem;
+    transition: background-color 0.3s ease;
+}
+
+.reveal-container a:hover {
+    background-color: #f7dc8a;
+}
