@@ -3,31 +3,80 @@
 {% block title %}Login - Daydream{% endblock %}
 
 {% block content %}
-{# Use the standard auth container for consistent styling #}
 <div class="auth-container">
     <h2 id="login-heading">Login to Daydream</h2>
-
-    {# Form posts data to the /login route defined in app.py #}
-    {# Added aria-labelledby #}
-    <form method="POST" action="{{ url_for('auth.login') }}" aria-labelledby="login-heading">
+    <form id="login-form" aria-labelledby="login-heading">
         <div class="form-group">
             <label for="email">Email:</label>
-            {# Added autocomplete attribute for better browser/password manager integration #}
             <input type="email" id="email" name="email" required autocomplete="email">
         </div>
         <div class="form-group">
             <label for="password">Password:</label>
-            {# Added autocomplete attribute #}
             <input type="password" id="password" name="password" required autocomplete="current-password">
         </div>
-         <div class="form-actions"> {# Wrap button for potential styling #}
+        <div class="form-actions">
             <button type="submit" class="button">Login</button>
         </div>
     </form>
-    <p class="auth-switch"> {# Added class for potential styling #}
+    <div id="error-message" class="error-text" style="display: none;"></div>
+    <p class="auth-switch">
         Don't have an account? <a href="{{ url_for('auth.signup') }}">Sign Up here</a>
     </p>
 </div>
+
+{# Hidden form to post the ID token to the backend #}
+<form id="token-form" method="POST" action="{{ url_for('auth.login') }}" style="display: none;">
+    <input type="hidden" id="idToken" name="idToken">
+</form>
 {% endblock %}
 
-{# Removed empty {% block styles %} and {% block scripts %} as they were unused #}
+{% block scripts %}
+<!-- Firebase SDK -->
+<script type="module">
+    // Your web app's Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyAspCDrL_EQky3NDvbmaUekYXp074OjUl0",
+        authDomain: "daydream-455317.firebaseapp.com",
+        projectId: "daydream-455317",
+        storageBucket: "daydream-455317.firebasestorage.app",
+        messagingSenderId: "351505558870",
+        appId: "1:351505558870:web:a5813ade6683af22f23af7",
+        measurementId: "G-JM58J09305"
+    };
+
+    // Initialize Firebase
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    const loginForm = document.getElementById('login-form');
+    const tokenForm = document.getElementById('token-form');
+    const idTokenInput = document.getElementById('idToken');
+    const errorMessageDiv = document.getElementById('error-message');
+
+    loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = loginForm.email.value;
+        const password = loginForm.password.value;
+        errorMessageDiv.style.display = 'none';
+        errorMessageDiv.textContent = '';
+
+        try {
+            const userCredential = await signInWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+            const idToken = await user.getIdToken();
+
+            // Post the token to the backend
+            idTokenInput.value = idToken;
+            tokenForm.submit();
+
+        } catch (error) {
+            console.error("Firebase login error:", error);
+            errorMessageDiv.textContent = 'Login failed. Please check your email and password.';
+            errorMessageDiv.style.display = 'block';
+        }
+    });
+</script>
+{% endblock %}

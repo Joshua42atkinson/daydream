@@ -1,10 +1,4 @@
-Creating Flask app...
---- Starting Daydream Server (Refactored) ---
- Mode: Debug
- Host: 0.0.0.0
- Port: 8080
------------------------------------
- * Serving Flask app 'daydream'
- * Debug mode: on
-Address already in use
-Port 8080 is in use by another program. Either identify and stop that program, or start the server with a different port.
+[2025-11-14 00:29:13 +0000] [6621] [INFO] Starting gunicorn 23.0.0
+[2025-11-14 00:29:13 +0000] [6621] [INFO] Listening at: http://0.0.0.0:8080 (6621)
+[2025-11-14 00:29:13 +0000] [6621] [INFO] Using worker: sync
+[2025-11-14 00:29:13 +0000] [6624] [INFO] Booting worker with pid: 6624
