@@ -1,5 +1,6 @@
 import logging
 from flask import render_template, request, redirect, url_for, session, flash, current_app
+from firebase_admin import auth as firebase_auth
 from . import bp
 from ..utils import login_required, SESSION_USER_ID, SESSION_USER_EMAIL, FS_PLAYER_HAS_SEEN_INTRO
 
@@ -25,35 +26,40 @@ def login():
 
     # --- Standard Firebase Login ---
     if request.method == 'POST':
+        id_token = request.form.get('idToken')
+        if not id_token:
+            flash("Login failed: Authentication token was not provided.", "error")
+            logging.warning("Login POST request received without an ID token.")
+            return render_template('auth/login.html')
+
         auth_client = current_app.config.get('AUTH_CLIENT')
         if not auth_client:
             flash("Authentication service is not available. Please check server configuration.", "error")
             return render_template('auth/login.html')
 
-        email = request.form.get('email')
-        password = request.form.get('password')
-        if not email or not password:
-            flash("Please enter both email and password.", "error")
-            return render_template('auth/login.html')
-
         try:
-            user = auth_client.get_user_by_email(email)
-            # SECURITY NOTE: This is a placeholder and does NOT actually verify the password.
-            # In a real application, you would use a method like `sign_in_with_email_and_password`.
-            logging.info(f"User {email} found, proceeding with login for UID: {user.uid}")
-            logging.warning(f"SECURITY-NOTE: Password for {email} is NOT verified by this backend logic.")
+            # Verify the ID token
+            decoded_token = firebase_auth.verify_id_token(id_token)
+            uid = decoded_token['uid']
+
+            # Get user data
+            user = auth_client.get_user(uid)
 
             session[SESSION_USER_ID] = user.uid
             session[SESSION_USER_EMAIL] = user.email
             session.permanent = True
             flash(f"Welcome back, {user.email}!", "success")
+            logging.info(f"User {user.email} (UID: {user.uid}) logged in successfully via token.")
 
             next_url = request.args.get('next')
             return redirect(next_url or url_for('profile.profile'))
+        except firebase_auth.InvalidIdTokenError as e:
+            flash("Login failed: Invalid authentication token. Please try again.", "error")
+            logging.error(f"Invalid ID token received during login: {e}")
         except Exception as e:
             # Using a generic error message for security.
-            flash("Login failed: The email address was not found or an error occurred.", "error")
-            logging.error(f"Login attempt failed for {email}: {e}")
+            flash("Login failed: An unexpected error occurred.", "error")
+            logging.error(f"Login attempt with token failed: {e}")
 
     return render_template('auth/login.html')
 

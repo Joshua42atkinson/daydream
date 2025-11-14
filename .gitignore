@@ -3,6 +3,7 @@
 
 # Dummy/sensitive files
 dummy_firebase_key.json
+firebase-credentials.json
 
 # Python cache
 __pycache__/

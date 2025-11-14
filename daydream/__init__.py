@@ -148,13 +148,23 @@ def create_app(test_config=None):
     if not app.config.get('TESTING') and not BYPASS_EXTERNAL_SERVICES:
         # --- Firebase Initialization ---
         try:
-            SERVICE_ACCOUNT_KEY_PATH = os.environ.get("FIREBASE_SERVICE_ACCOUNT_KEY")
-            if not SERVICE_ACCOUNT_KEY_PATH:
-                raise ValueError("FIREBASE_SERVICE_ACCOUNT_KEY environment variable not set.")
-            if not os.path.exists(SERVICE_ACCOUNT_KEY_PATH):
-                 raise FileNotFoundError(f"Firebase key file not found at path: {os.path.abspath(SERVICE_ACCOUNT_KEY_PATH)}")
+            # New method: Load Firebase credentials directly from environment variable
+            firebase_credentials_json_str = os.environ.get("FIREBASE_CREDENTIALS_JSON")
+            if not firebase_credentials_json_str:
+                raise ValueError("FIREBASE_CREDENTIALS_JSON environment variable not set.")
 
-            cred = credentials.Certificate(SERVICE_ACCOUNT_KEY_PATH)
+            # Parse the JSON string into a dictionary
+            try:
+                service_account_info = json.loads(firebase_credentials_json_str)
+            except json.JSONDecodeError as e:
+                raise ValueError(f"Error decoding FIREBASE_CREDENTIALS_JSON: {e}")
+
+            # The private key from the environment variable should already be correctly formatted,
+            # but if it has escaped newlines, we'll fix them.
+            if 'private_key' in service_account_info:
+                service_account_info['private_key'] = service_account_info['private_key'].replace('\\n', '\n')
+
+            cred = credentials.Certificate(service_account_info)
             firebase_app_instance = None
             try:
                 firebase_app_instance = firebase_admin.get_app(name=app.config['FIREBASE_APP_NAME'])
