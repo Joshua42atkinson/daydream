@@ -39,7 +39,7 @@ def login():
 
         try:
             # Verify the ID token
-            decoded_token = firebase_auth.verify_id_token(id_token)
+            decoded_token = auth_client.verify_id_token(id_token)
             uid = decoded_token['uid']
 
             # Get user data
